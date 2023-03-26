@@ -1,7 +1,7 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require("express");
+const bodyParser = require("body-parser");
 const userRouter = require("./api/user/user.router");
 const facultyRouter = require("./api/faculty/faculty.router");
 
@@ -14,7 +14,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/user", userRouter);
 app.use("/api/faculty", facultyRouter);
 
-
 app.listen(process.env.APP_PORT, () => {
-    console.log("server up and running on PORT :", process.env.APP_PORT);
+  console.log("server up and running on PORT :", process.env.APP_PORT);
 });
