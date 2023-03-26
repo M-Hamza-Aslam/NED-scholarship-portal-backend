@@ -3,7 +3,7 @@ const {
     login,
     signUp,
     protected
-} = require('../faculty/faculty.controller');
+} = require('../user/user.controller');
 
 
 router.post('/login', login);

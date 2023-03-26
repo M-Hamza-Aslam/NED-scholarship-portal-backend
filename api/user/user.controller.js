@@ -1,7 +1,7 @@
 const { body, validationResult } = require('express-validator');
 const {
-  findFacultyByEmail,
-  createFaculty
+  findUserByEmail,
+  createUser
 } = require('../user/user.service');
 
 const bcrypt = require('bcrypt');
@@ -17,7 +17,7 @@ module.exports = {
     const { email, password } = req.body;
 
     try {
-      const user = await findFacultyByEmail(email);
+      const user = await findUserByEmail(email);
 
       if (!user) {
         return res.status(401).json({ 
@@ -60,7 +60,7 @@ module.exports = {
     } = req.body;
 
     try {
-      const existingUser = await findFacultyByEmail(email);
+      const existingUser = await findUserByEmail(email);
 
       if (existingUser) {
         return res.status(409).json({ 
@@ -70,7 +70,7 @@ module.exports = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const newUser = await createFaculty({
+      const newUser = await createUser({
         firstname,
         lastname,
         email,
