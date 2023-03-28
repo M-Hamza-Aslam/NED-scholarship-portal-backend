@@ -22,7 +22,9 @@ mongoose
     "mongodb+srv://MuhammadHamza:hamza12345@cluster0.fq85av6.mongodb.net/portalData?retryWrites=true&w=majority"
   )
   .then((result) => {
-    app.listen(3000);
+        app.listen(process.env.APP_PORT, () => {
+          console.log("server up and running on PORT :", process.env.APP_PORT);
+        });
   })
   .catch((err) => {
     console.log(err);
