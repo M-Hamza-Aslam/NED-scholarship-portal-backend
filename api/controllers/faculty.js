@@ -1,5 +1,5 @@
 const { body, validationResult } = require("express-validator");
-const { findFacultyByEmail, createFaculty } = require("../user/user.service");
+// const { findFacultyByEmail, createFaculty } = require("../user/user.service");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
