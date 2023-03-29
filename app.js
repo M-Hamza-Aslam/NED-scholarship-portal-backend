@@ -29,6 +29,3 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
-// app.listen(process.env.APP_PORT, () => {
-//   console.log("server up and running on PORT :", process.env.APP_PORT);
-// });
