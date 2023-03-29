@@ -1,5 +1,4 @@
 const { body, validationResult } = require("express-validator");
-// const { findUserByEmail, createUser } = require("../user/user.service");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -13,13 +12,16 @@ module.exports = {
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-      const { email, password } = req.body;
+      const { email, password, userRole } = req.body;
 
-      const userDetails = await User.findOne({ email: email });
+      const userDetails = await User.findOne({
+        email: email,
+        userRole: userRole,
+      });
 
       if (!userDetails) {
         return res.status(401).json({
-          error: "Invalid email",
+          error: "User not found",
         });
       }
 
@@ -32,7 +34,7 @@ module.exports = {
       }
 
       const token = jwt.sign(
-        { userId: userDetails._id.toString() },
+        { userId: userDetails._id.toString(), userRole: userDetails.userRole },
         "mysupersupersecretkey",
         { expiresIn: "1h" }
       );
@@ -91,33 +93,4 @@ module.exports = {
       });
     }
   },
-
-  // protected: (req, res, ) => {
-  //   res.status(200).json({
-  //     message: `User ${req.userId} is authenticated`,
-  //   });
-  // },
 };
-
-// Validation rules for login route
-// exports.loginValidationRules = () => {
-//   return [
-//     body("email").isEmail().withMessage("Invalid email"),
-//     body("password")
-//       .isLength({ min: 8 })
-//       .withMessage("Password must be at least 8 characters"),
-//   ];
-// };
-
-// Validation rules for sign up route
-// exports.signUpValidationRules = () => {
-//   return [
-//     body("firstname").not().isEmpty().withMessage("First name is required"),
-//     body("lastname").not().isEmpty().withMessage("Last name is required"),
-//     body("email").isEmail().withMessage("Invalid email"),
-//     body("password")
-//       .isLength({ min: 8 })
-//       .withMessage("Password must be at least 8 characters"),
-//     body("phone_number").isMobilePhone().withMessage("Invalid phone number"),
-//   ];
-// };

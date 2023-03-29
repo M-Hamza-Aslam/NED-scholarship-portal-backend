@@ -6,13 +6,13 @@ const jwt = require("jsonwebtoken");
 // Validation middleware for login
 
 const validateLogin = [
-  body("email")
+  body("email", "Invalid email")
     .isEmail()
-    .normalizeEmail({ gmail_remove_dots: false })
-    .withMessage("Invalid email"),
+    .normalizeEmail({ gmail_remove_dots: false }),
   body("password")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
+  body("userRole", "User role must be provided").notEmpty(),
 ];
 
 // Validation middleware
