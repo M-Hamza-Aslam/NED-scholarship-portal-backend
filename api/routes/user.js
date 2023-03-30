@@ -1,6 +1,11 @@
 const router = require("express").Router();
-const { login, signUp, protected } = require("../controllers/user");
-const { body, validationResult } = require("express-validator");
+const {
+  login,
+  signUp,
+  forgotPassword,
+  resetPassword,
+} = require("../controllers/user");
+const { body } = require("express-validator");
 const jwt = require("jsonwebtoken");
 
 // Validation middleware for login
@@ -34,6 +39,17 @@ const validateSignUp = [
     .isLength({ min: 12, max: 12 })
     .withMessage("Phone number should be 12 digits long"),
 ];
+const validateForgotPassword = [
+  body("email")
+    .isEmail()
+    .normalizeEmail({ gmail_remove_dots: false })
+    .withMessage("Invalid email"),
+];
+const validateResetPassword = [
+  body("newPassword")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+];
 
 // Authentication middleware
 const authenticateToken = (req, res, next) => {
@@ -64,5 +80,9 @@ const authenticateToken = (req, res, next) => {
 router.post("/login", validateLogin, login);
 
 router.post("/signup", validateSignUp, signUp);
+
+router.post("/forgot-password", validateForgotPassword, forgotPassword);
+
+router.post("/reset-password", validateResetPassword, resetPassword);
 
 module.exports = router;
