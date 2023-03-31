@@ -9,6 +9,7 @@ const facultyRoutes = require("./api/routes/faculty");
 const app = express();
 
 app.use(express.json());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
