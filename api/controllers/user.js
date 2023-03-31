@@ -11,8 +11,7 @@ const sendgridTransport = require("nodemailer-sendgrid-transport");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
-      api_key:
-        "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",
+      api_key: process.env.SendsGrid_API_Key,
     },
   })
 );
@@ -47,7 +46,7 @@ module.exports = {
 
       const token = jwt.sign(
         { userId: userDetails._id.toString(), userRole: userDetails.userRole },
-        "mysupersupersecretkey",
+        process.env.JWT_SecretKey,
         { expiresIn: "1h" }
       );
 

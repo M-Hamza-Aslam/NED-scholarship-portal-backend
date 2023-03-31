@@ -28,9 +28,7 @@ app.use(facultyRoutes);
 // setting mongoose connection and starting server
 mongoose.set("strictQuery", false);
 mongoose
-  .connect(
-    "mongodb+srv://MuhammadHamza:hamza12345@cluster0.fq85av6.mongodb.net/portalData?retryWrites=true&w=majority"
-  )
+  .connect(process.env.MongoDB_URI)
   .then((result) => {
     app.listen(process.env.APP_PORT, () => {
       console.log("server up and running on PORT :", process.env.APP_PORT);

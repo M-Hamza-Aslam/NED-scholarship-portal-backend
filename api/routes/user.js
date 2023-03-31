@@ -61,7 +61,7 @@ const authenticateToken = (req, res, next) => {
       });
     }
     const token = authHeader.split(" ")[1];
-    const decodedToken = jwt.verify(token, "mysupersupersecretkey");
+    const decodedToken = jwt.verify(token, process.env.JWT_SecretKey);
     if (!decodedToken) {
       return res.status(401).json({
         error: "Invalid Token!",
