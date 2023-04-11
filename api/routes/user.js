@@ -1,14 +1,18 @@
 const router = require("express").Router();
+
 const {
   login,
   signUp,
   forgotPassword,
   resetPassword,
-  addOrUpdatePersonalInfo,
+  addOrUpdatePersonalInfo
+} = require("../controllers/user");
+const {
   getScholarshipList,
   getScholarshipListById,
   getFeaturedScholarshipList
-} = require("../controllers/user");
+} = require("../controllers/scholarship");
+
 const { body } = require("express-validator");
 const jwt = require("jsonwebtoken");
 
