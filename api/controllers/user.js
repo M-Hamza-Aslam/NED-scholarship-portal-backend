@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -7,7 +7,7 @@ const User = require("../modules/user");
 const Scholarship = require("../modules/scholarship");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
-const url = require('url');
+const url = require("url");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -15,7 +15,6 @@ const transporter = nodemailer.createTransport(
     },
   })
 );
-
 
 module.exports = {
   //For student login
@@ -191,66 +190,7 @@ module.exports = {
       });
     }
   },
-
-  addOrUpdatePersonalInfo: async (req,res) => {
-
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
-      }
-      
-      const { personalInfo } = req.body;
-      const token = req.headers.authorization.split(" ")[1]; // assuming the token is sent in the "Authorization" header with the "Bearer" scheme
-      const decodedToken = jwt.verify(token, process.env.JWT_SecretKey);
-      const userId = decodedToken.userId;
-      
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // update only the fields that are present in the request body
-      if (personalInfo.aboutYourself) {
-        user.personalInfo.aboutYourself = {
-          ...user.personalInfo.aboutYourself,
-          ...personalInfo.aboutYourself
-        };
-      }
-      if (personalInfo.biographicalInformation) {
-        user.personalInfo.biographicalInformation = {
-          ...user.personalInfo.biographicalInformation,
-          ...personalInfo.biographicalInformation
-        };
-      }
-      if (personalInfo.fatherInformation) {
-        user.personalInfo.fatherInformation = {
-          ...user.personalInfo.fatherInformation,
-          ...personalInfo.fatherInformation
-        };
-      }
-      if (personalInfo.nationalityInfo) {
-        user.personalInfo.nationalityInfo = {
-          ...user.personalInfo.nationalityInfo,
-          ...personalInfo.nationalityInfo
-        };
-      }
-      
-      const updatedUser = await user.save();
-      res.json({
-         message: "Personal information updated",
-        user: updatedUser 
-      });
-      
-    } catch (error) {
-      res.status(500).json({
-        message: "Something went wrong",
-        error: error.message,
-      });
-    }
-  },
-
-  getScholarshipList: async(req, res) => {
+  getScholarshipList: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -259,7 +199,6 @@ module.exports = {
 
       const scholarships = await Scholarship.find();
       res.json(scholarships);
-       
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -267,8 +206,8 @@ module.exports = {
       });
     }
   },
-  getScholarshipListById: async(req,res) => {
-    try{
+  getScholarshipListById: async (req, res) => {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
@@ -278,13 +217,12 @@ module.exports = {
 
       const scholarship = await Scholarship.findById(id);
       if (!scholarship) {
-        return res.status(404).json({ 
-          message: "Scholarship not found" 
+        return res.status(404).json({
+          message: "Scholarship not found",
         });
       }
 
       res.json(scholarship);
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -292,9 +230,8 @@ module.exports = {
       });
     }
   },
-  getFeaturedScholarshipList: async(req,res) => {
-    try{
-      
+  getFeaturedScholarshipList: async (req, res) => {
+    try {
       // Parse the URL using the Node.js built-in url module.
       const urlObj = url.parse(req.url, true);
 
@@ -304,19 +241,17 @@ module.exports = {
       // Converting the qty parameter to a number.
       const qtyNum = parseInt(qty);
 
-      // Fetching the top ten scholarship lists from your MongoDB database. 
+      // Fetching the top ten scholarship lists from your MongoDB database.
       const topScholarships = await Scholarship.find()
         .sort({ popularity: -1 })
         .limit(qtyNum);
 
       res.json(topScholarships);
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
         error: error.message,
       });
     }
-  }
-
+  },
 };
