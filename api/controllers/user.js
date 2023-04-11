@@ -283,7 +283,7 @@ module.exports = {
         });
       }
 
-      res.json(scholarships);
+      res.json(scholarship);
 
     } catch (error) {
       res.status(500).json({
