@@ -1,8 +1,6 @@
-const { body, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 
 const Scholarship = require("../modules/scholarship");
-const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
 const url = require('url');
 
 
