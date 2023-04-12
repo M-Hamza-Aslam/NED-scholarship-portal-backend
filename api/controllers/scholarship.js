@@ -66,7 +66,23 @@ module.exports = {
         .sort({ popularity: -1 })
         .limit(qtyNum);
 
-      res.json(topScholarships);
+       // Modifying the date format
+       const scholarshipData = topScholarships.map(scholarship => {
+        return {
+          ...scholarship.toObject(),
+          date: (() => {
+            const date = new Date(scholarship.date);
+            const month = date.toLocaleString('default', { month: 'long' });
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return { month, day, year };
+          })(),
+        };
+      });
+
+      console.log(scholarshipData);
+      res.json(scholarshipData);
+
 
     } catch (error) {
       res.status(500).json({
