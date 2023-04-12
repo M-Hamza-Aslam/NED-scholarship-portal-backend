@@ -319,7 +319,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (!user.educationalDetails.length === 0) {
+      if (user.educationalDetails.length === 0) {
         user.educationalDetails = [educationData];
         user.profileStatus = user.profileStatus + 25;
       } else if (index === -1) {
