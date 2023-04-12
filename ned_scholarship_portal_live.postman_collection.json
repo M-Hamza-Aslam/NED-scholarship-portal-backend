@@ -1,0 +1,150 @@
+{
+	"info": {
+		"_postman_id": "134aaa16-17a0-4def-8e35-44929ae0b1b4",
+		"name": "ned_scholarship_portal_live",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23808418"
+	},
+	"item": [
+		{
+			"name": "API for portal login - Status: completed",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"rizvi4404893@cloud.neduet.edu.pk\",\r\n    \"password\": \"bcit-076\",\r\n    \"userRole\": \"student\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{portal_url}}/login",
+					"host": [
+						"{{portal_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API for calling scholarship by id - Status: completed",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDM1YjBhYWUwNzIxZjlkZGFmYjlmZDIiLCJ1c2VyUm9sZSI6InN0dWRlbnQiLCJleHBpcmF0aW9uIjoxNjgxMzAzNzAwNTQ0LCJpYXQiOjE2ODEzMDAxMDAsImV4cCI6MTY4MTMwMzcwMH0.qbdShVt3ypCCRHMogGkzEsBEYI-d7liRXE4_EskN2eo",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{portal_url}}/scholarship-list/643458e4adf22b531160f5da",
+					"host": [
+						"{{portal_url}}"
+					],
+					"path": [
+						"scholarship-list",
+						"643458e4adf22b531160f5da"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API for calling whole scholarship list - Status: completed",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NDM1YjBhYWUwNzIxZjlkZGFmYjlmZDIiLCJ1c2VyUm9sZSI6InN0dWRlbnQiLCJleHBpcmF0aW9uIjoxNjgxMzAzNzAwNTQ0LCJpYXQiOjE2ODEzMDAxMDAsImV4cCI6MTY4MTMwMzcwMH0.qbdShVt3ypCCRHMogGkzEsBEYI-d7liRXE4_EskN2eo",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{portal_url}}/scholarship-list",
+					"host": [
+						"{{portal_url}}"
+					],
+					"path": [
+						"scholarship-list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API for Home page featured scholarships - Status: completed",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{portal_url}}/featured-scholarship-list?qty=10",
+					"host": [
+						"{{portal_url}}"
+					],
+					"path": [
+						"featured-scholarship-list"
+					],
+					"query": [
+						{
+							"key": "qty",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "API for portal sign - Status: In progress",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{portal_url}}/signup",
+					"host": [
+						"{{portal_url}}"
+					],
+					"path": [
+						"signup"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "portal_url",
+			"value": "https://ned-scholarship-portal.onrender.com",
+			"type": "string"
+		}
+	]
+}

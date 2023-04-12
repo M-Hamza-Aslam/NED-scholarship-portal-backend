@@ -5,7 +5,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const userRoutes = require("./api/routes/user");
 const facultyRoutes = require("./api/routes/faculty");
-
+const scholarshipRoutes = require("./api/routes/scholarship");
 const app = express();
 
 app.use(express.json());
@@ -24,6 +24,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use(userRoutes);
+app.use(scholarshipRoutes);
 app.use(facultyRoutes);
 
 // setting mongoose connection and starting server

@@ -1,23 +1,28 @@
 const router = require("express").Router();
-
 const {
   login,
   signUp,
   forgotPassword,
   resetPassword,
-  addOrUpdatePersonalInfo
+  getLoginData,
+  updatePersonalInfo,
+  updateFamilyDetails,
+  updateEducationDetails,
+  updateDependantDetails,
+  getPersonalInfo,
+  getFamilyDetails,
+  getEducationalDetails,
+  deleteEducationalDetails,
+  getDependantDetails,
+  deleteDependantDetails,
 } = require("../controllers/user");
-const {
-  getScholarshipList,
-  getScholarshipListById,
-  getFeaturedScholarshipList
-} = require("../controllers/scholarship");
+
+const authenticateToken = require("../middlewares/isAuth");
 
 const { body } = require("express-validator");
-const jwt = require("jsonwebtoken");
+
 
 // Validation middleware for login
-
 const validateLogin = [
   body("email", "Invalid email")
     .isEmail()
@@ -56,104 +61,34 @@ const validateForgotPassword = [
     .withMessage("Invalid email"),
 ];
 
-// Validation middleware for Reset Password 
+// Validation middleware for Reset Password
 const validateResetPassword = [
   body("newPassword")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 ];
 
-// Validation middleware for add Or Update Personal Info
+// Validation middleware for Personal Information
 const validatePersonalInfo = [
-  body('token', 'Token is required')
-    .notEmpty(),
-  body("personalInfo.aboutYourself.title")
-    .isString()
-    .withMessage("Title must be a string"),
-  body("personalInfo.aboutYourself.firstName")
-    .isString()
-    .withMessage("First name must be a string"),
-  body("personalInfo.aboutYourself.lastName")
-    .isString()
-    .withMessage("Last name must be a string"),
-  body("personalInfo.aboutYourself.cellPhone")
-    .isString()
-    .withMessage("Cell phone must be a string"),
-  body("personalInfo.aboutYourself.gender")
-    .isString()
-    .withMessage("Gender must be a string"),
-  body("personalInfo.aboutYourself.religion")
-    .isString()
-    .withMessage("Religion must be a string"),
-  body("personalInfo.aboutYourself.maritalStatus")
-    .isString()
-    .withMessage("Marital status must be a string"),
-  body("personalInfo.biographicalInformation.dataOfBirth")
-    .isString()
-    .withMessage("Date of birth must be a string"),
-  body("personalInfo.biographicalInformation.domicileProvince")
-    .isString()
-    .withMessage("Domicile province must be a string"),
-  body("personalInfo.biographicalInformation.domicileCity")
-    .isString()
-    .withMessage("Domicile city must be a string"),
-  body("personalInfo.biographicalInformation.domicileDistrict")
-    .isString()
-    .withMessage("Domicile district must be a string"),
-  body("personalInfo.biographicalInformation.countryOfBirth")
-    .isString()
-    .withMessage("Country of birth must be a string"),
-  body("personalInfo.biographicalInformation.age")
-    .isString()
-    .withMessage("Age must be a string"),
-  body("personalInfo.fatherInformation.fatherName")
-    .isString()
-    .withMessage("Father name must be a string"),
-  body("personalInfo.fatherInformation.fatherStatus")
-    .isString()
-    .withMessage("Father status must be a string"),
-  body("personalInfo.fatherInformation.fatherCurrentlyEmployed")
-    .isString()
-    .withMessage("Father currently employed must be a string"),
-  body("personalInfo.fatherInformation.fatherOccupation")
-    .isString()
-    .withMessage("Father occupation must be a string"),
-  body("personalInfo.nationalityInfo.identification")
-    .isString()
-    .withMessage("Identification must be a string"),
-  body("personalInfo.nationalityInfo.type")
-    .isString()
-    .withMessage("Type must be a string"),
-  body("personalInfo.nationalityInfo.country")
-    .isString()
-    .withMessage("Country must be a string"),
+  body("firstName").notEmpty().withMessage("First Name is Empty"),
 ];
 
+// Validation middleware for Family Details
+const validateFamilyDetails = [
+  body("familyDetails.fatherHealthStatus")
+    .notEmpty()
+    .withMessage("First Name is Empty"),
+];
 
-// Authentication middleware
-const authenticateToken = (req, res, next) => {
-  try {
-    const authHeader = req.get("Authorization");
-    if (!authHeader) {
-      return res.status(401).json({
-        error: "Invalid Token!",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.JWT_SecretKey);
-    if (!decodedToken) {
-      return res.status(401).json({
-        error: "Invalid Token!",
-      });
-    }
-    req.userId = decodedToken.userId;
-    next();
-  } catch (err) {
-    return res.status(401).json({
-      error: "Invalid Token!",
-    });
-  }
-};
+// Validation middleware for Education Details
+const validateEducationDetails = [
+  body("educationData.class").notEmpty().withMessage("Class is empty"),
+];
+
+// Validation middleware for Dependant Details
+const validateDependantDetails = [
+  body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
+];
 
 //Routes
 router.post("/login", validateLogin, login);
@@ -164,12 +99,26 @@ router.post("/forgot-password", validateForgotPassword, forgotPassword);
 
 router.post("/reset-password", validateResetPassword, resetPassword);
 
-router.post("/personal-info", authenticateToken, validatePersonalInfo, addOrUpdatePersonalInfo);
+router.get("/getLoginData", authenticateToken, getLoginData);
 
-router.get("/scholarship-list", authenticateToken, getScholarshipList);
+router.post("/personal-info", authenticateToken, validatePersonalInfo, updatePersonalInfo);
 
-router.get("/scholarship-list/:id", authenticateToken, getScholarshipListById);
+router.post("/family-details", authenticateToken, validateFamilyDetails, updateFamilyDetails);
 
-router.get("/featured-scholarship-list", getFeaturedScholarshipList);
+router.post("/education-details", authenticateToken, validateEducationDetails, updateEducationDetails);
+
+router.post("/dependant-details", authenticateToken, validateDependantDetails, updateDependantDetails);
+
+router.get("/personal-info", authenticateToken, getPersonalInfo);
+
+router.get("/family-details", authenticateToken, getFamilyDetails);
+
+router.get("/education-details", authenticateToken, getEducationalDetails);
+
+router.get("/dependant-details", authenticateToken, getDependantDetails);
+
+router.post("/delete-education", authenticateToken, deleteEducationalDetails);
+
+router.post("/delete-dependant", authenticateToken, deleteDependantDetails);
 
 module.exports = router;
