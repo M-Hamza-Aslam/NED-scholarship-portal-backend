@@ -1,1 +1,3 @@
-# Scholarship_Portal_Website-Backend
+# NEDScholarshipPortalBackend
+
+backend of NED Scholarship Portal

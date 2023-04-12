@@ -4,9 +4,22 @@ const {
   signUp,
   forgotPassword,
   resetPassword,
+  getLoginData,
+  updatePersonalInfo,
+  updateFamilyDetails,
+  updateEducationDetails,
+  updateDependantDetails,
+  getPersonalInfo,
+  getFamilyDetails,
+  getEducationalDetails,
+  deleteEducationalDetails,
+  getDependantDetails,
+  deleteDependantDetails,
 } = require("../controllers/user");
+
+const authenticateToken = require("../middlewares/isAuth");
+
 const { body } = require("express-validator");
-const jwt = require("jsonwebtoken");
 
 // Validation middleware for login
 
@@ -20,7 +33,7 @@ const validateLogin = [
   body("userRole", "User role must be provided").notEmpty(),
 ];
 
-// Validation middleware
+// Validation middleware for sign up
 const validateSignUp = [
   body("firstName").notEmpty().withMessage("First name is required"),
   body("lastName").notEmpty().withMessage("Last name is required"),
@@ -39,42 +52,37 @@ const validateSignUp = [
     .isLength({ min: 12, max: 12 })
     .withMessage("Phone number should be 12 digits long"),
 ];
+
+// Validation middleware for Forgot Password
 const validateForgotPassword = [
   body("email")
     .isEmail()
     .normalizeEmail({ gmail_remove_dots: false })
     .withMessage("Invalid email"),
 ];
+
+// Validation middleware for Reset Password
 const validateResetPassword = [
   body("newPassword")
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 ];
+const validatePersonalInfo = [
+  body("firstName").notEmpty().withMessage("First Name is Empty"),
+];
+const validateFamilyDetails = [
+  body("familyDetails.fatherHealthStatus")
+    .notEmpty()
+    .withMessage("First Name is Empty"),
+];
 
-// Authentication middleware
-const authenticateToken = (req, res, next) => {
-  try {
-    const authHeader = req.get("Authorization");
-    if (!authHeader) {
-      return res.status(401).json({
-        error: "Invalid Token!",
-      });
-    }
-    const token = authHeader.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.JWT_SecretKey);
-    if (!decodedToken) {
-      return res.status(401).json({
-        error: "Invalid Token!",
-      });
-    }
-    req.userId = decodedToken.userId;
-    next();
-  } catch (err) {
-    return res.status(401).json({
-      error: "Invalid Token!",
-    });
-  }
-};
+const validateEducationDetails = [
+  body("educationData.class").notEmpty().withMessage("Class is empty"),
+];
+
+const validateDependantDetails = [
+  body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
+];
 
 //Routes
 router.post("/login", validateLogin, login);
@@ -84,5 +92,47 @@ router.post("/signup", validateSignUp, signUp);
 router.post("/forgot-password", validateForgotPassword, forgotPassword);
 
 router.post("/reset-password", validateResetPassword, resetPassword);
+
+router.get("/getLoginData", authenticateToken, getLoginData);
+
+router.post(
+  "/personal-info",
+  authenticateToken,
+  validatePersonalInfo,
+  updatePersonalInfo
+);
+
+router.post(
+  "/family-details",
+  authenticateToken,
+  validateFamilyDetails,
+  updateFamilyDetails
+);
+
+router.post(
+  "/education-details",
+  authenticateToken,
+  validateEducationDetails,
+  updateEducationDetails
+);
+
+router.post(
+  "/dependant-details",
+  authenticateToken,
+  validateDependantDetails,
+  updateDependantDetails
+);
+
+router.get("/personal-info", authenticateToken, getPersonalInfo);
+
+router.get("/family-details", authenticateToken, getFamilyDetails);
+
+router.get("/education-details", authenticateToken, getEducationalDetails);
+
+router.get("/dependant-details", authenticateToken, getDependantDetails);
+
+router.post("/delete-education", authenticateToken, deleteEducationalDetails);
+
+router.post("/delete-dependant", authenticateToken, deleteDependantDetails);
 
 module.exports = router;
