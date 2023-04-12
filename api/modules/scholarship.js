@@ -5,19 +5,19 @@ const Schema = mongoose.Schema;
 const scholarshipSchema = new Schema({
   title: {
     type: String,
-    required: true,
+    required: true
   },
   date: {
-    type: String,
-    required: true,
+    type: Date,
+    default: Date.now
   },
   status: {
     type: String,
-    required: true,
+    required: true
   },
   description: {
     type: String,
-    required: true,
+    required: true
   },
   
 });
