@@ -8,8 +8,8 @@ const scholarshipSchema = new Schema({
     required: true,
   },
   date: {
-    type: Date,
-    required: true,
+     type: Date,
+    default: Date.now()
   },
   status: {
     type: String,

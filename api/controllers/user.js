@@ -1,13 +1,11 @@
-const { body, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../modules/user");
-const Scholarship = require("../modules/scholarship");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
-const url = require('url');
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -15,7 +13,6 @@ const transporter = nodemailer.createTransport(
     },
   })
 );
-
 
 module.exports = {
   //For student login
@@ -47,14 +44,26 @@ module.exports = {
       }
 
       const token = jwt.sign(
-        { userId: userDetails._id.toString(), userRole: userDetails.userRole },
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
         process.env.JWT_SecretKey,
         { expiresIn: "1h" }
       );
+      const userData = {
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        phoneNumber: userDetails.phoneNumber,
+        profileStatus: userDetails.profileStatus,
+        userRole: userDetails.userRole,
+      };
 
       res.status(200).json({
         message: "Login successful",
-        userDetails,
+        userDetails: userData,
         userId: userDetails._id.toString(),
         token: token,
       });
@@ -65,7 +74,6 @@ module.exports = {
     }
   },
 
-  //For student signup
   signUp: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -95,6 +103,11 @@ module.exports = {
         password: hashedPassword,
         phoneNumber,
         userRole: "student",
+        profileStatus: 0,
+        personalInfo: { isInitial: true },
+        familyDetails: { isInitial: true },
+        educationalDetails: [],
+        dependantDetails: [],
       });
       const result = await newUser.save();
 
@@ -191,132 +204,358 @@ module.exports = {
       });
     }
   },
+  getLoginData: async (req, res) => {
+    try {
+      const userDetails = await User.findById(req.userId);
+      if (!userDetails) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const userData = {
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        phoneNumber: userDetails.phoneNumber,
+        profileStatus: userDetails.profileStatus,
+        userRole: userDetails.userRole,
+      };
 
-  addOrUpdatePersonalInfo: async (req,res) => {
-
+      res.status(200).json({
+        message: "User Credentials fetched successfully",
+        userDetails: userData,
+        userId: userDetails._id.toString(),
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  updatePersonalInfo: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log(errors.array());
         return res.status(422).json({ errors: errors.array() });
       }
-      
-      const { personalInfo } = req.body;
-      const token = req.headers.authorization.split(" ")[1]; // assuming the token is sent in the "Authorization" header with the "Bearer" scheme
-      const decodedToken = jwt.verify(token, process.env.JWT_SecretKey);
-      const userId = decodedToken.userId;
-      
-      const user = await User.findById(userId);
+      const { firstName, lastName, phoneNumber, personalInfo } = req.body;
+
+      const user = await User.findById(req.userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
-      // update only the fields that are present in the request body
-      if (personalInfo.aboutYourself) {
-        user.personalInfo.aboutYourself = {
-          ...user.personalInfo.aboutYourself,
-          ...personalInfo.aboutYourself
-        };
+      if (user.personalInfo.isInitial) {
+        user.profileStatus = user.profileStatus + 25;
+        user.personalInfo.isInitial = false;
       }
-      if (personalInfo.biographicalInformation) {
-        user.personalInfo.biographicalInformation = {
-          ...user.personalInfo.biographicalInformation,
-          ...personalInfo.biographicalInformation
-        };
-      }
-      if (personalInfo.fatherInformation) {
-        user.personalInfo.fatherInformation = {
-          ...user.personalInfo.fatherInformation,
-          ...personalInfo.fatherInformation
-        };
-      }
-      if (personalInfo.nationalityInfo) {
-        user.personalInfo.nationalityInfo = {
-          ...user.personalInfo.nationalityInfo,
-          ...personalInfo.nationalityInfo
-        };
-      }
-      
+      //update info
+      user.firstName = firstName;
+      user.lastName = lastName;
+      user.phoneNumber = phoneNumber;
+      user.personalInfo = { isInitial: false, ...personalInfo };
       const updatedUser = await user.save();
-      res.json({
-         message: "Personal information updated",
-        user: updatedUser 
+      res.status(201).json({
+        message: "Personal information updated",
+        updatedUserData: {
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          phoneNumber: updatedUser.phoneNumber,
+          personalInfo: updatedUser.personalInfo,
+          profileStatus: updatedUser.profileStatus,
+        },
       });
-      
     } catch (error) {
+      console.log(error);
       res.status(500).json({
-        message: "Something went wrong",
-        error: error.message,
+        message: "Internal server error",
       });
     }
   },
-
-  getScholarshipList: async(req, res) => {
+  updateFamilyDetails: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log(errors.array());
         return res.status(422).json({ errors: errors.array() });
       }
+      const { familyDetails } = req.body;
 
-      const scholarships = await Scholarship.find();
-      res.json(scholarships);
-       
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (user.familyDetails.isInitial) {
+        user.profileStatus = user.profileStatus + 25;
+        user.familyDetails.isInitial = false;
+      }
+      //update info
+      user.familyDetails = { isInitial: false, ...familyDetails };
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "Family details updated",
+        updatedUserData: {
+          familyDetails: updatedUser.familyDetails,
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
     } catch (error) {
+      console.log(error);
       res.status(500).json({
-        message: "Something went wrong with the api",
-        error: error.message,
+        message: "Internal server error",
       });
     }
   },
-  getScholarshipListById: async(req,res) => {
-    try{
+  updateEducationDetails: async (req, res, next) => {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log(errors.array());
         return res.status(422).json({ errors: errors.array() });
       }
+      const { educationData, index } = req.body;
 
-      const id = req.params.id; //To seprate the id from the parameter
-
-      const scholarship = await Scholarship.findById(id);
-      if (!scholarship) {
-        return res.status(404).json({ 
-          message: "Scholarship not found" 
-        });
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
-
-      res.json(scholarships);
-
+      //update database
+      if (user.educationalDetails.length === 0) {
+        user.educationalDetails = [educationData];
+        user.profileStatus = user.profileStatus + 25;
+      } else if (index === -1) {
+        user.educationalDetails.unshift(educationData);
+      } else {
+        user.educationalDetails[index] = educationData;
+      }
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "educational details updated",
+        updatedUserData: {
+          educationalDetails: {
+            hasFetched: true,
+            educationalDetailsArr: updatedUser.educationalDetails,
+          },
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
     } catch (error) {
+      console.log(error);
       res.status(500).json({
-        message: "Something went wrong with the api",
-        error: error.message,
+        message: "Internal server error",
       });
     }
   },
-  getFeaturedScholarshipList: async(req,res) => {
-    try{
-      
-      // Parse the URL using the Node.js built-in url module.
-      const urlObj = url.parse(req.url, true);
+  updateDependantDetails: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log(errors.array());
+        return res.status(422).json({ errors: errors.array() });
+      }
+      const { dependantData, index } = req.body;
 
-      // Extracting the qty query parameter from the urlObj object.
-      const qty = urlObj.query.qty;
-
-      // Converting the qty parameter to a number.
-      const qtyNum = parseInt(qty);
-
-      // Fetching the top ten scholarship lists from your MongoDB database. 
-      const topScholarships = await Scholarship.find()
-        .sort({ popularity: -1 })
-        .limit(qtyNum);
-
-      res.json(topScholarships);
-
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //update database
+      if (user.dependantDetails.length === 0) {
+        user.dependantDetails = [dependantData];
+        user.profileStatus = user.profileStatus + 25;
+      } else if (index === -1) {
+        user.dependantDetails.unshift(dependantData);
+      } else {
+        user.dependantDetails[index] = dependantData;
+      }
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "dependant details updated",
+        updatedUserData: {
+          dependantDetails: {
+            hasFetched: true,
+            dependantDetailsArr: updatedUser.dependantDetails,
+          },
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
     } catch (error) {
+      console.log(error);
       res.status(500).json({
-        message: "Something went wrong with the api",
-        error: error.message,
+        message: "Internal server error",
       });
     }
-  }
-
+  },
+  getPersonalInfo: async (req, res, next) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //sending data to front-end
+      let personalInfo;
+      if (!user.personalInfo) {
+        personalInfo = {};
+      }
+      personalInfo = user.personalInfo;
+      res.status(200).json({
+        userData: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+          personalInfo: personalInfo,
+          profileStatus: user.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getFamilyDetails: async (req, res) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //sending data to front-end
+      let familyDetails;
+      if (!user.familyDetails) {
+        familyDetails = {};
+      }
+      familyDetails = user.familyDetails;
+      res.status(200).json({
+        userData: {
+          familyDetails: familyDetails,
+          profileStatus: user.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getEducationalDetails: async (req, res) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //sending data to front-end
+      let educationalDetails = {
+        hasFetched: true,
+        educationalDetailsArr: [],
+      };
+      if (user.educationalDetails) {
+        educationalDetails.educationalDetailsArr = user.educationalDetails;
+      }
+      res.status(200).json({
+        userData: {
+          educationalDetails: educationalDetails,
+          profileStatus: user.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getDependantDetails: async (req, res) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //sending data to front-end
+      let dependantDetails = {
+        hasFetched: true,
+        dependantDetailsArr: [],
+      };
+      if (user.dependantDetails) {
+        dependantDetails.dependantDetailsArr = user.dependantDetails;
+      }
+      res.status(200).json({
+        userData: {
+          dependantDetails: dependantDetails,
+          profileStatus: user.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  deleteEducationalDetails: async (req, res) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //deleteing education
+      const { index } = req.body;
+      user.educationalDetails.splice(index, 1);
+      if (user.educationalDetails.length === 0) {
+        user.profileStatus -= 25;
+      }
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "educational details deleted",
+        updatedUserData: {
+          educationalDetails: {
+            hasFetched: true,
+            educationalDetailsArr: updatedUser.educationalDetails,
+          },
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  deleteDependantDetails: async (req, res) => {
+    try {
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //deleteing depandant
+      const { index } = req.body;
+      user.dependantDetails.splice(index, 1);
+      if (user.dependantDetails.length === 0) {
+        user.profileStatus -= 25;
+      }
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "dependant details deleted",
+        updatedUserData: {
+          dependantDetails: {
+            hasFetched: true,
+            dependantDetailsArr: updatedUser.dependantDetails,
+          },
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
 };

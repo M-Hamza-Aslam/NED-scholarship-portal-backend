@@ -27,6 +27,26 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  profileStatus: {
+    type: Number,
+    required: true,
+  },
+  personalInfo: {
+    type: Object,
+    required: true,
+  },
+  familyDetails: {
+    type: Object,
+    required: true,
+  },
+  educationalDetails: {
+    type: Array,
+    required: true,
+  },
+  dependantDetails: {
+    type: Array,
+    required: true,
+  },
   resetToken: String,
   resetTokenExpiration: Date,
 });
