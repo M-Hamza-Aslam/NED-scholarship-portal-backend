@@ -1,4 +1,6 @@
+
 const { validationResult } = require("express-validator");
+
 
 const Scholarship = require("../modules/scholarship");
 const url = require('url');

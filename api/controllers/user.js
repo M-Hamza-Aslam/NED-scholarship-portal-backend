@@ -14,7 +14,6 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-
 module.exports = {
 
   //For student login
@@ -76,7 +75,6 @@ module.exports = {
     }
   },
 
-  //For student sign up
   signUp: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -207,8 +205,6 @@ module.exports = {
       });
     }
   },
-
-  // For getting Login data 
   getLoginData: async (req, res) => {
     try {
       const userDetails = await User.findById(req.userId);
@@ -223,7 +219,6 @@ module.exports = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
       };
-
       res.status(200).json({
         message: "User Credentials fetched successfully",
         userDetails: userData,
@@ -236,8 +231,6 @@ module.exports = {
       });
     }
   },
-
-  // To update personal info 
   updatePersonalInfo: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -279,7 +272,6 @@ module.exports = {
     }
   },
 
-  // TO update family details 
   updateFamilyDetails: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -314,8 +306,6 @@ module.exports = {
       });
     }
   },
-
-  // To update educational details 
   updateEducationDetails: async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -330,7 +320,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (!user.educationalDetails) {
+      if (user.educationalDetails.length === 0) {
         user.educationalDetails = [educationData];
         user.profileStatus = user.profileStatus + 25;
       } else if (index === -1) {
@@ -357,7 +347,6 @@ module.exports = {
     }
   },
 
-  // To update dependants datails 
   updateDependantDetails: async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -372,7 +361,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (!user.dependantDetails) {
+      if (user.dependantDetails.length === 0) {
         user.dependantDetails = [dependantData];
         user.profileStatus = user.profileStatus + 25;
       } else if (index === -1) {
@@ -387,6 +376,7 @@ module.exports = {
           dependantDetails: {
             hasFetched: true,
             dependantDetailsArr: updatedUser.dependantDetails,
+
           },
           profileStatus: updatedUser.profileStatus,
         },
@@ -398,8 +388,6 @@ module.exports = {
       });
     }
   },
-
-  // To get personal Info 
   getPersonalInfo: async (req, res, next) => {
     try {
       //finding user from database
@@ -429,8 +417,6 @@ module.exports = {
       });
     }
   },
-
-  // To get family details 
   getFamilyDetails: async (req, res) => {
     try {
       //finding user from database
@@ -457,8 +443,6 @@ module.exports = {
       });
     }
   },
-
-  // To get educational details 
   getEducationalDetails: async (req, res) => {
     try {
       //finding user from database
@@ -487,8 +471,6 @@ module.exports = {
       });
     }
   },
-
-  // To get dependents details 
   getDependantDetails: async (req, res) => {
     try {
       //finding user from database
@@ -517,8 +499,6 @@ module.exports = {
       });
     }
   },
-
-  // To delete educational details 
   deleteEducationalDetails: async (req, res) => {
     try {
       //finding user from database
@@ -550,8 +530,6 @@ module.exports = {
       });
     }
   },
-
-  // To delete dependent details 
   deleteDependantDetails: async (req, res) => {
     try {
       //finding user from database
@@ -583,4 +561,5 @@ module.exports = {
       });
     }
   },
+
 };

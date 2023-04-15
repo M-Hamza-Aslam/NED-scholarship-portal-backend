@@ -85,6 +85,7 @@ const validateEducationDetails = [
   body("educationData.class").notEmpty().withMessage("Class is empty"),
 ];
 
+
 // Validation middleware for Dependant Details
 const validateDependantDetails = [
   body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
@@ -101,13 +102,33 @@ router.post("/reset-password", validateResetPassword, resetPassword);
 
 router.get("/getLoginData", authenticateToken, getLoginData);
 
-router.post("/personal-info", authenticateToken, validatePersonalInfo, updatePersonalInfo);
+router.post(
+  "/personal-info",
+  authenticateToken,
+  validatePersonalInfo,
+  updatePersonalInfo
+);
 
-router.post("/family-details", authenticateToken, validateFamilyDetails, updateFamilyDetails);
+router.post(
+  "/family-details",
+  authenticateToken,
+  validateFamilyDetails,
+  updateFamilyDetails
+);
 
-router.post("/education-details", authenticateToken, validateEducationDetails, updateEducationDetails);
+router.post(
+  "/education-details",
+  authenticateToken,
+  validateEducationDetails,
+  updateEducationDetails
+);
 
-router.post("/dependant-details", authenticateToken, validateDependantDetails, updateDependantDetails);
+router.post(
+  "/dependant-details",
+  authenticateToken,
+  validateDependantDetails,
+  updateDependantDetails
+);
 
 router.get("/personal-info", authenticateToken, getPersonalInfo);
 
