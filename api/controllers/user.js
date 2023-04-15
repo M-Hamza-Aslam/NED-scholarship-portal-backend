@@ -225,7 +225,6 @@ module.exports = {
         userRole: userDetails.userRole,
         profileImg: userDetails.profileImg,
       };
-
       res.status(200).json({
         message: "User Credentials fetched successfully",
         userDetails: userData,
@@ -278,6 +277,7 @@ module.exports = {
       });
     }
   },
+
   updateFamilyDetails: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -352,6 +352,7 @@ module.exports = {
       });
     }
   },
+
   updateDependantDetails: async (req, res, next) => {
     try {
       const errors = validationResult(req);

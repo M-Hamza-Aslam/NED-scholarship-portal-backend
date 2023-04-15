@@ -24,8 +24,8 @@ const upload = require("../../util/multer");
 
 const { body } = require("express-validator");
 
-// Validation middleware for login
 
+// Validation middleware for login
 const validateLogin = [
   body("email", "Invalid email")
     .isEmail()
@@ -70,19 +70,26 @@ const validateResetPassword = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 ];
+
+// Validation middleware for Personal Information
 const validatePersonalInfo = [
   body("firstName").notEmpty().withMessage("First Name is Empty"),
 ];
+
+// Validation middleware for Family Details
 const validateFamilyDetails = [
   body("familyDetails.fatherHealthStatus")
     .notEmpty()
     .withMessage("First Name is Empty"),
 ];
 
+// Validation middleware for Education Details
 const validateEducationDetails = [
   body("educationData.class").notEmpty().withMessage("Class is empty"),
 ];
 
+
+// Validation middleware for Dependant Details
 const validateDependantDetails = [
   body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
 ];
