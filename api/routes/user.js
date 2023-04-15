@@ -15,9 +15,12 @@ const {
   deleteEducationalDetails,
   getDependantDetails,
   deleteDependantDetails,
+  uploadProfileImg,
+  sendProfileImg,
 } = require("../controllers/user");
 
 const authenticateToken = require("../middlewares/isAuth");
+const upload = require("../../util/multer");
 
 const { body } = require("express-validator");
 
@@ -134,5 +137,13 @@ router.get("/dependant-details", authenticateToken, getDependantDetails);
 router.post("/delete-education", authenticateToken, deleteEducationalDetails);
 
 router.post("/delete-dependant", authenticateToken, deleteDependantDetails);
+
+router.post(
+  "/upload-profileImg",
+  authenticateToken,
+  upload.single("profileImg"),
+  uploadProfileImg
+);
+router.get("/profileImg", authenticateToken, sendProfileImg);
 
 module.exports = router;

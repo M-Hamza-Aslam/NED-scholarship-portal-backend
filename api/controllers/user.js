@@ -1,8 +1,12 @@
 const { validationResult } = require("express-validator");
+const path = require("path");
+const fs = require("fs");
+const { createReadStream } = require("fs");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { getContentType } = require("../../util/contentType");
 const User = require("../modules/user");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
@@ -59,6 +63,7 @@ module.exports = {
         phoneNumber: userDetails.phoneNumber,
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
+        profileImg: userDetails.profileImg,
       };
 
       res.status(200).json({
@@ -104,6 +109,7 @@ module.exports = {
         phoneNumber,
         userRole: "student",
         profileStatus: 0,
+        profileImg: "",
         personalInfo: { isInitial: true },
         familyDetails: { isInitial: true },
         educationalDetails: [],
@@ -217,6 +223,7 @@ module.exports = {
         phoneNumber: userDetails.phoneNumber,
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
+        profileImg: userDetails.profileImg,
       };
 
       res.status(200).json({
@@ -400,9 +407,6 @@ module.exports = {
       personalInfo = user.personalInfo;
       res.status(200).json({
         userData: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phoneNumber: user.phoneNumber,
           personalInfo: personalInfo,
           profileStatus: user.profileStatus,
         },
@@ -551,6 +555,71 @@ module.exports = {
           profileStatus: updatedUser.profileStatus,
         },
       });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  uploadProfileImg: async (req, res) => {
+    try {
+      const image = req.file;
+      if (!image) {
+        return res.status(415).json({
+          message: "Invalid File",
+        });
+      }
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (user.profileImg !== "") {
+        // Remove image from the file storage
+        fs.unlink(user.profileImg, function (err) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("File deleted successfully");
+          }
+        });
+      }
+      const imageUrl = image.path.replace(/\\/g, "/");
+      user.profileImg = imageUrl;
+      const updatedUser = await user.save();
+      res.status(201).json({
+        message: "file Uploaded",
+        profileImg: updatedUser.profileImg,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendProfileImg: async (req, res) => {
+    try {
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const filePath = path.resolve(user.profileImg);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
     } catch (error) {
       console.log(error);
       res.status(500).json({

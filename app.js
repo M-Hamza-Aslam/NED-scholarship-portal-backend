@@ -1,6 +1,7 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
+const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const userRoutes = require("./api/routes/user");
@@ -23,6 +24,11 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+
+//providing images statistically
+// app.use("/images", express.static(path.join(__dirname, "images")));
+
+//Routes
 app.use(userRoutes);
 app.use(scholarshipRoutes);
 app.use(facultyRoutes);
