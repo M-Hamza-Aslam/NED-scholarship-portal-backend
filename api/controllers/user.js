@@ -15,6 +15,7 @@ const transporter = nodemailer.createTransport(
 );
 
 module.exports = {
+
   //For student login
   login: async (req, res) => {
     try {
@@ -218,7 +219,6 @@ module.exports = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
       };
-
       res.status(200).json({
         message: "User Credentials fetched successfully",
         userDetails: userData,
@@ -271,6 +271,7 @@ module.exports = {
       });
     }
   },
+
   updateFamilyDetails: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -345,6 +346,7 @@ module.exports = {
       });
     }
   },
+
   updateDependantDetails: async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -374,6 +376,7 @@ module.exports = {
           dependantDetails: {
             hasFetched: true,
             dependantDetailsArr: updatedUser.dependantDetails,
+
           },
           profileStatus: updatedUser.profileStatus,
         },
@@ -558,4 +561,5 @@ module.exports = {
       });
     }
   },
+
 };

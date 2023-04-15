@@ -1,4 +1,6 @@
-const {validationResult } = require("express-validator");
+
+const { validationResult } = require("express-validator");
+
 
 const Scholarship = require("../modules/scholarship");
 const url = require('url');
@@ -12,8 +14,24 @@ module.exports = {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const scholarships = await Scholarship.find();
-      res.json(scholarships);
+      const scholarshipList = await Scholarship.find();
+
+      // Modifying the date format
+      const scholarshipData = scholarshipList.map(scholarship => {
+        return {
+          ...scholarship.toObject(),
+          date: (() => {
+            const date = new Date(scholarship.date);
+            const month = date.toLocaleString('default', { month: 'long' });
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return { month, day, year };
+          })(),
+        };
+      });
+
+      console.log(scholarshipData);
+      res.json(scholarshipData);
 
     } catch (error) {
       res.status(500).json({
@@ -31,14 +49,27 @@ module.exports = {
 
       const id = req.params.id; //To seprate the id from the parameter
 
-      const scholarship = await Scholarship.findById(id);
-      if (!scholarship) {
+      const foundScholarship = await Scholarship.findById(id);
+      if (!foundScholarship) {
         return res.status(404).json({ 
           message: "Scholarship not found" 
         });
       }
 
-      res.json(scholarship);
+       // Modifying the date format
+       const scholarshipData = {
+        ...foundScholarship.toObject(),
+        date: (() => {
+          const date = new Date(foundScholarship.date);
+          const month = date.toLocaleString('default', { month: 'long' });
+          const day = date.getDate();
+          const year = date.getFullYear();
+          return { month, day, year };
+        })(),
+      };
+
+      console.log(scholarshipData);
+      res.json(scholarshipData);
 
     } catch (error) {
       res.status(500).json({
