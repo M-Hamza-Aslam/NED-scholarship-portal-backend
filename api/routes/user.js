@@ -15,9 +15,12 @@ const {
   deleteEducationalDetails,
   getDependantDetails,
   deleteDependantDetails,
+  uploadProfileImg,
+  sendProfileImg,
 } = require("../controllers/user");
 
 const authenticateToken = require("../middlewares/isAuth");
+const upload = require("../../util/multer");
 
 const { body } = require("express-validator");
 
@@ -67,19 +70,26 @@ const validateResetPassword = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 ];
+
+// Validation middleware for Personal Information
 const validatePersonalInfo = [
   body("firstName").notEmpty().withMessage("First Name is Empty"),
 ];
+
+// Validation middleware for Family Details
 const validateFamilyDetails = [
   body("familyDetails.fatherHealthStatus")
     .notEmpty()
     .withMessage("First Name is Empty"),
 ];
 
+// Validation middleware for Education Details
 const validateEducationDetails = [
   body("educationData.class").notEmpty().withMessage("Class is empty"),
 ];
 
+
+// Validation middleware for Dependant Details
 const validateDependantDetails = [
   body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
 ];
@@ -134,5 +144,13 @@ router.get("/dependant-details", authenticateToken, getDependantDetails);
 router.post("/delete-education", authenticateToken, deleteEducationalDetails);
 
 router.post("/delete-dependant", authenticateToken, deleteDependantDetails);
+
+router.post(
+  "/upload-profileImg",
+  authenticateToken,
+  upload.single("profileImg"),
+  uploadProfileImg
+);
+router.get("/profileImg", authenticateToken, sendProfileImg);
 
 module.exports = router;

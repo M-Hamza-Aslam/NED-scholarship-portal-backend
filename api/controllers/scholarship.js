@@ -1,4 +1,5 @@
-const { validationResult } = require("express-validator");
+
+const {validationResult } = require("express-validator");
 
 const Scholarship = require("../modules/scholarship");
 const url = require('url');
@@ -12,6 +13,7 @@ module.exports = {
         return res.status(422).json({ errors: errors.array() });
       }
 
+      
       const scholarshipList = await Scholarship.find();
 
       // Modifying the date format
