@@ -50,6 +50,9 @@ const userSchema = new Schema({
     type: Array,
     required: true,
   },
+  appliedScholarship: {
+    type: Array,
+  },
   resetToken: String,
   resetTokenExpiration: Date,
 });

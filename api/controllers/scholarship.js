@@ -2,6 +2,8 @@
 const {validationResult } = require("express-validator");
 
 const Scholarship = require("../modules/scholarship");
+const User = require("../modules/user");
+
 const url = require('url');
 
 
@@ -119,5 +121,73 @@ module.exports = {
         error: error.message,
       });
     }
+  },
+  getAppliedScholarshipList: async (req, res) => {
+    try{
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let appliedScholarships = user.appliedScholarship;
+
+      res.json({ appliedScholarships });
+
+
+    } catch (error) {
+      res.status(500).json({
+        message: "Something went wrong with the api",
+        error: error.message,
+      });
+    }
+  },
+  appliedScholarship:async (req, res) => {
+    try {
+      const { body } = req;
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+      
+      const { userId, scholarshipId, status } = body;
+      
+      const user = await User.findById(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const hasApplied = user.appliedScholarship.some(
+        (scholarship) => scholarship.scholarshipId === scholarshipId
+      );
+      
+      if (hasApplied) {
+        return res.json({ error: "User has already applied to this scholarship" });
+      }
+      
+      const hasApproved = user.appliedScholarship.some(
+        (scholarship) => scholarship.status === "approved"
+      );
+      
+      if (hasApproved) {
+        return res.json({ error: "User already has an approved scholarship" });
+      } else {
+        user.appliedScholarship.push({ scholarshipId, status });
+        await user.save();
+      
+        return res.json({ success: "Applied scholarship added to user" });
+      }
+    } catch (error) {
+      console.error("Error in appliedScholarship", error);
+      return res.status(500).json({
+        message: "Something went wrong with the API",
+        error: error.message,
+      });
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
   }
 };
