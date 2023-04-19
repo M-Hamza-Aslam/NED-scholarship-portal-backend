@@ -42,13 +42,22 @@ const userSchema = new Schema({
     type: Object,
     required: true,
   },
-  educationalDetails: {
-    type: Array,
-    required: true,
+  education: {
+    educationalDetails: {
+      type: Array,
+      required: true,
+    },
+    documents: {
+      type: Array,
+      required: true,
+    },
   },
   dependantDetails: {
     type: Array,
     required: true,
+  },
+  appliedScholarship: {
+    type: Array,
   },
   resetToken: String,
   resetTokenExpiration: Date,

@@ -112,7 +112,10 @@ module.exports = {
         profileImg: "",
         personalInfo: { isInitial: true },
         familyDetails: { isInitial: true },
-        educationalDetails: [],
+        education: {
+          educationalDetails: [],
+          documents: [],
+        },
         dependantDetails: [],
       });
       const result = await newUser.save();
@@ -251,7 +254,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       if (user.personalInfo.isInitial) {
-        user.profileStatus = user.profileStatus + 25;
+        user.profileStatus += 25;
         user.personalInfo.isInitial = false;
       }
       //update info
@@ -263,9 +266,6 @@ module.exports = {
       res.status(201).json({
         message: "Personal information updated",
         updatedUserData: {
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          phoneNumber: updatedUser.phoneNumber,
           personalInfo: updatedUser.personalInfo,
           profileStatus: updatedUser.profileStatus,
         },
@@ -292,7 +292,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       if (user.familyDetails.isInitial) {
-        user.profileStatus = user.profileStatus + 25;
+        user.profileStatus += 25;
         user.familyDetails.isInitial = false;
       }
       //update info
@@ -326,22 +326,23 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (user.educationalDetails.length === 0) {
-        user.educationalDetails = [educationData];
-        user.profileStatus = user.profileStatus + 25;
+      if (user.education.educationalDetails.length === 0) {
+        user.education.educationalDetails = [educationData];
+        user.profileStatus = user.profileStatus + 15;
       } else if (index === -1) {
-        user.educationalDetails.unshift(educationData);
+        user.education.educationalDetails.unshift(educationData);
       } else {
-        user.educationalDetails[index] = educationData;
+        user.education.educationalDetails[index] = educationData;
       }
       const updatedUser = await user.save();
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
       res.status(201).json({
         message: "educational details updated",
         updatedUserData: {
-          educationalDetails: {
-            hasFetched: true,
-            educationalDetailsArr: updatedUser.educationalDetails,
-          },
+          education,
           profileStatus: updatedUser.profileStatus,
         },
       });
@@ -426,15 +427,16 @@ module.exports = {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      //sending data to front-end
+      //extracting data
       let familyDetails;
       if (!user.familyDetails) {
         familyDetails = {};
       }
       familyDetails = user.familyDetails;
+      //sending data to front-end
       res.status(200).json({
         userData: {
-          familyDetails: familyDetails,
+          familyDetails,
           profileStatus: user.profileStatus,
         },
       });
@@ -453,16 +455,13 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       //sending data to front-end
-      let educationalDetails = {
+      const education = {
         hasFetched: true,
-        educationalDetailsArr: [],
+        ...user.education,
       };
-      if (user.educationalDetails) {
-        educationalDetails.educationalDetailsArr = user.educationalDetails;
-      }
       res.status(200).json({
         userData: {
-          educationalDetails: educationalDetails,
+          education,
           profileStatus: user.profileStatus,
         },
       });
@@ -510,18 +509,20 @@ module.exports = {
       }
       //deleteing education
       const { index } = req.body;
-      user.educationalDetails.splice(index, 1);
-      if (user.educationalDetails.length === 0) {
-        user.profileStatus -= 25;
+      user.education.educationalDetails.splice(index, 1);
+      if (user.education.educationalDetails.length === 0) {
+        user.profileStatus -= 15;
       }
       const updatedUser = await user.save();
+      //sending response
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
       res.status(201).json({
         message: "educational details deleted",
         updatedUserData: {
-          educationalDetails: {
-            hasFetched: true,
-            educationalDetailsArr: updatedUser.educationalDetails,
-          },
+          education,
           profileStatus: updatedUser.profileStatus,
         },
       });
@@ -623,6 +624,135 @@ module.exports = {
       fileStream.pipe(res);
     } catch (error) {
       console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  uploadDocuments: async (req, res) => {
+    try {
+      //extracting files coming from frontend
+      const files = req.files;
+      console.log(files);
+      if (!files) {
+        return res.status(415).json({
+          message: "Invalid Files",
+        });
+      }
+      //finding user from database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (user.education.documents.length === 0) {
+        user.profileStatus += 10;
+      }
+      //extracting fileNames
+      const fileNames = files.map((file) => {
+        return file.filename;
+      });
+      console.log(fileNames);
+      //updating database
+      user.education.documents = [...user.education.documents, ...fileNames];
+      const updatedUser = await user.save();
+      //sending response
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
+      res.status(201).json({
+        message: "files Uploaded successfully",
+        updatedUserData: {
+          education,
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendDocument: async (req, res) => {
+    try {
+      //geting document path from client
+      documentPath = req.query.documentPath;
+      //extracting user form database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education.documents.includes(documentPath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      const filePath = path.resolve(`images/documents/${documentPath}`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  deleteDocument: async (req, res) => {
+    try {
+      //geting document path from client
+      const documentPath = req.query.documentPath;
+      //extracting user form database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education.documents.includes(documentPath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      //removing document from database
+      const updatedDocuments = user.education.documents.filter(
+        (document) => document !== documentPath
+      );
+      user.education.documents = updatedDocuments;
+      if (user.education.documents.length === 0) {
+        user.profileStatus -= 10;
+      }
+      const updatedUser = await user.save();
+      //removing file from server
+      fs.unlink(`images/documents/${documentPath}`, function (err) {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log("File deleted successfully");
+        }
+      });
+      //sending response
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
+      res.status(201).json({
+        message: "file deleted successfully",
+        updatedUserData: {
+          education,
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
       res.status(500).json({
         message: "Internal server error",
       });

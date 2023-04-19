@@ -17,13 +17,15 @@ const {
   deleteDependantDetails,
   uploadProfileImg,
   sendProfileImg,
+  uploadDocuments,
+  sendDocument,
+  deleteDocument,
 } = require("../controllers/user");
 
 const authenticateToken = require("../middlewares/isAuth");
 const upload = require("../../util/multer");
 
 const { body } = require("express-validator");
-
 
 // Validation middleware for login
 const validateLogin = [
@@ -88,7 +90,6 @@ const validateEducationDetails = [
   body("educationData.class").notEmpty().withMessage("Class is empty"),
 ];
 
-
 // Validation middleware for Dependant Details
 const validateDependantDetails = [
   body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
@@ -148,9 +149,25 @@ router.post("/delete-dependant", authenticateToken, deleteDependantDetails);
 router.post(
   "/upload-profileImg",
   authenticateToken,
-  upload.single("profileImg"),
+  upload("images/profileImg", ["image/jpeg", "image/jpg", "image/png"]).single(
+    "profileImg"
+  ),
   uploadProfileImg
 );
 router.get("/profileImg", authenticateToken, sendProfileImg);
+
+router.post(
+  "/upload-documents",
+  authenticateToken,
+  upload("images/documents", [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ]).array("files"),
+  uploadDocuments
+);
+
+router.get("/document", authenticateToken, sendDocument);
+
+router.delete("/document", authenticateToken, deleteDocument);
 
 module.exports = router;
