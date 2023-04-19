@@ -22,8 +22,8 @@ module.exports = {
       const scholarshipData = scholarshipList.map(scholarship => {
         return {
           ...scholarship.toObject(),
-          date: (() => {
-            const date = new Date(scholarship.date);
+          issueDate: (() => {
+            const date = new Date(scholarship.issueDate);
             const month = date.toLocaleString('default', { month: 'long' });
             const day = date.getDate();
             const year = date.getFullYear();
@@ -61,8 +61,8 @@ module.exports = {
        // Modifying the date format
        const scholarshipData = {
         ...foundScholarship.toObject(),
-        date: (() => {
-          const date = new Date(foundScholarship.date);
+        issueDate: (() => {
+          const date = new Date(foundScholarship.issueDate);
           const month = date.toLocaleString('default', { month: 'long' });
           const day = date.getDate();
           const year = date.getFullYear();
@@ -101,8 +101,8 @@ module.exports = {
        const scholarshipData = topScholarships.map(scholarship => {
         return {
           ...scholarship.toObject(),
-          date: (() => {
-            const date = new Date(scholarship.date);
+          issueDate: (() => {
+            const date = new Date(scholarship.issueDate);
             const month = date.toLocaleString('default', { month: 'long' });
             const day = date.getDate();
             const year = date.getFullYear();
