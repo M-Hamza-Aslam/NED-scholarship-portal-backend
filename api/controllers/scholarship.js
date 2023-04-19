@@ -1,8 +1,8 @@
 
 const {validationResult } = require("express-validator");
 const jwt = require('jsonwebtoken');
-const Scholarship = require("../modules/scholarship");
-const User = require("../modules/user");
+const Scholarship = require("../models/scholarship");
+const User = require("../models/user");
 
 const url = require('url');
 
