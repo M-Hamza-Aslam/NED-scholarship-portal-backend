@@ -1,7 +1,7 @@
 {
   "name": "scholarship_portal_website-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "backend of NED Scholarship Portal",
   "main": "app.js",
   "dependencies": {
     "abbrev": "^1.1.1",
