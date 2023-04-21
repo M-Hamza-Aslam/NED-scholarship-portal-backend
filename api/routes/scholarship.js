@@ -5,7 +5,8 @@ const {
   getScholarshipListById,
   getFeaturedScholarshipList,
   getAppliedScholarshipList,
-  appliedScholarship
+  appliedScholarship,
+  getScholarshipImg
 } = require("../controllers/scholarship");
 
 const authenticateToken = require("../middlewares/isAuth");
@@ -19,5 +20,7 @@ router.get("/featured-scholarship-list", getFeaturedScholarshipList);
 router.get("/applied-scholarship-list", authenticateToken, getAppliedScholarshipList);
 
 router.post("/apply-scholarship", authenticateToken, appliedScholarship);
+
+router.get("/scholarshipImg", authenticateToken, getScholarshipImg);
 
 module.exports = router;

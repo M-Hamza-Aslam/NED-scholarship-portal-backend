@@ -1,10 +1,15 @@
 
-const {validationResult } = require("express-validator");
-const jwt = require('jsonwebtoken');
+const { validationResult } = require("express-validator");
+
 const Scholarship = require("../models/scholarship");
 const User = require("../models/user");
+const { getContentType } = require("../../util/contentType");
 
+const jwt = require('jsonwebtoken');
 const url = require('url');
+const path = require("path");
+const fs = require("fs");
+const { createReadStream } = require("fs");
 
 
 module.exports = {
@@ -42,6 +47,7 @@ module.exports = {
       });
     }
   },
+
   getScholarshipListById: async(req,res) => {
     try{
       const errors = validationResult(req);
@@ -80,6 +86,7 @@ module.exports = {
       });
     }
   },
+
   getFeaturedScholarshipList: async(req,res) => {
     try{
 
@@ -122,6 +129,7 @@ module.exports = {
       });
     }
   },
+
   getAppliedScholarshipList: async (req, res) => {
     try{
       const authHeader = req.headers['authorization'];
@@ -156,6 +164,7 @@ module.exports = {
       });
     }
   },
+
   appliedScholarship:async (req, res) => {
     try {
       const authHeader = req.headers['authorization'];
@@ -173,7 +182,7 @@ module.exports = {
         return res.status(422).json({ errors: errors.array() });
       }
       
-      const { scholarshipId} = body;
+      const { scholarshipId } = body;
       
       const user = await User.findById(userId);
       
@@ -198,8 +207,14 @@ module.exports = {
       } else {
         user.appliedScholarship.push({ scholarshipId, status:"awaiting" });
         await user.save();
-      
-        return res.json({ success: "Applied scholarship added to user" });
+        
+        // Gettiing the updated applied scholarship object 
+        let updatedAppliedScholarships = user.appliedScholarship;
+
+        return res.json({ 
+          success: "Applied scholarship added to user",
+          appliedScholarships: updatedAppliedScholarships
+        });
       }
     } catch (error) {
       console.error("Error in appliedScholarship", error);
@@ -208,5 +223,55 @@ module.exports = {
         error: error.message,
       });
     }                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+  },
+
+  getScholarshipImg: async (req, res) => {
+    try{
+      const { body } = req;
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const { scholarshipId } = body;
+
+      const foundScholarship = await Scholarship.findById(scholarshipId);
+      if (!foundScholarship) {
+        return res.status(404).json({ 
+          message: "Scholarship not found" 
+        });
+      }
+
+      const scholarshipImg = foundScholarship.scholarshipImg;
+      if (!scholarshipImg) {
+        return res.status(400).json({
+          message: "Scholarship image not found",
+        });
+      }
+
+      const filePath = path.resolve(scholarshipImg);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+
+    }catch (error) {
+      console.error("Error in appliedScholarship", error);
+      return res.status(500).json({
+        message: "Something went wrong with the API",
+        error: error.message,
+      });
+    }
   }
 };
