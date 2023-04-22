@@ -15,7 +15,7 @@ const scholarshipSchema = new Schema({
     type: Date,
     required: true
   },
-  scholarshipImg: {
+  image: {
     type: String,
     required: true
   },

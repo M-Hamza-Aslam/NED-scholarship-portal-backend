@@ -25,17 +25,27 @@ module.exports = {
 
       // Modifying the date format
       const scholarshipData = scholarshipList.map(scholarship => {
+        const issueDate = new Date(scholarship.issueDate);
+        const closeDate = new Date(scholarship.closeDate);
+      
         return {
           ...scholarship.toObject(),
-          issueDate: (() => {
-            const date = new Date(scholarship.issueDate);
-            const month = date.toLocaleString('default', { month: 'long' });
-            const day = date.getDate();
-            const year = date.getFullYear();
-            return { month, day, year };
-          })(),
+          issueDate: {
+            month: issueDate.toLocaleString('default', { month: 'long' }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime()) ? {} : {
+              month: closeDate.toLocaleString('default', { month: 'long' }),
+              day: closeDate.getDate(),
+              year: closeDate.getFullYear(),
+            }),
+          },
         };
       });
+      
 
       console.log(scholarshipData);
       res.json(scholarshipData);
@@ -64,18 +74,28 @@ module.exports = {
         });
       }
 
-       // Modifying the date format
-       const scholarshipData = {
-        ...foundScholarship.toObject(),
-        issueDate: (() => {
-          const date = new Date(foundScholarship.issueDate);
-          const month = date.toLocaleString('default', { month: 'long' });
-          const day = date.getDate();
-          const year = date.getFullYear();
-          return { month, day, year };
-        })(),
-      };
-
+      // Modifying the date format
+      const issueDate = new Date(foundScholarship.issueDate);
+      const closeDate = new Date(foundScholarship.closeDate);
+      const scholarshipData = [ 
+        {
+          ...foundScholarship.toObject(),
+          issueDate: {
+            month: issueDate.toLocaleString('default', { month: 'long' }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime()) ? {} : {
+              month: closeDate.toLocaleString('default', { month: 'long' }),
+              day: closeDate.getDate(),
+              year: closeDate.getFullYear(),
+            }),
+          },
+        }
+      ];
+      
       console.log(scholarshipData);
       res.json(scholarshipData);
 
@@ -105,22 +125,31 @@ module.exports = {
         .limit(qtyNum);
 
        // Modifying the date format
-       const scholarshipData = topScholarships.map(scholarship => {
+      const scholarshipData = topScholarships.map(scholarship => {
+        const issueDate = new Date(scholarship.issueDate);
+        const closeDate = new Date(scholarship.closeDate);
+      
         return {
           ...scholarship.toObject(),
-          issueDate: (() => {
-            const date = new Date(scholarship.issueDate);
-            const month = date.toLocaleString('default', { month: 'long' });
-            const day = date.getDate();
-            const year = date.getFullYear();
-            return { month, day, year };
-          })(),
+          issueDate: {
+            month: issueDate.toLocaleString('default', { month: 'long' }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime()) ? {} : {
+              month: closeDate.toLocaleString('default', { month: 'long' }),
+              day: closeDate.getDate(),
+              year: closeDate.getFullYear(),
+            }),
+          },
         };
       });
+      
 
       console.log(scholarshipData);
       res.json(scholarshipData);
-
 
     } catch (error) {
       res.status(500).json({
@@ -227,29 +256,30 @@ module.exports = {
 
   getScholarshipImg: async (req, res) => {
     try{
-      const { body } = req;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const { scholarshipId } = body;
+      const scholarshipId  = req.params.id;
 
       const foundScholarship = await Scholarship.findById(scholarshipId);
+      console.log(foundScholarship);
       if (!foundScholarship) {
         return res.status(404).json({ 
           message: "Scholarship not found" 
         });
       }
 
-      const scholarshipImg = foundScholarship.scholarshipImg;
+      let scholarshipImg = foundScholarship.image;
+      console.log(scholarshipImg)
       if (!scholarshipImg) {
         return res.status(400).json({
           message: "Scholarship image not found",
         });
       }
 
-      const filePath = path.resolve(scholarshipImg);
+      const filePath = path.resolve('images/scholarshipImg/'+ scholarshipImg);
       if (!fs.existsSync(filePath)) {
         return res.status(401).json({
           message: "Invalid File",

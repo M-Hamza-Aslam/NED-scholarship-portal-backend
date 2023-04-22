@@ -21,6 +21,6 @@ router.get("/applied-scholarship-list", authenticateToken, getAppliedScholarship
 
 router.post("/apply-scholarship", authenticateToken, appliedScholarship);
 
-router.get("/scholarshipImg", authenticateToken, getScholarshipImg);
+router.get("/scholarshipImg/:id", authenticateToken, getScholarshipImg);
 
 module.exports = router;
