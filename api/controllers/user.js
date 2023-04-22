@@ -677,7 +677,7 @@ module.exports = {
   sendDocument: async (req, res) => {
     try {
       //geting document path from client
-      documentPath = req.query.documentPath;
+      const documentPath = req.query.documentPath;
       //extracting user form database
       const user = await User.findById(req.userId);
       if (!user) {

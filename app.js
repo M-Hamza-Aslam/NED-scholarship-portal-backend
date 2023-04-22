@@ -1,9 +1,10 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const path = require("path");
+// const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
+const adminRoutes = require("./api/routes/admin");
 const userRoutes = require("./api/routes/user");
 const facultyRoutes = require("./api/routes/faculty");
 const scholarshipRoutes = require("./api/routes/scholarship");
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 // app.use("/images", express.static(path.join(__dirname, "images")));
 
 //Routes
+app.use("/admin", adminRoutes);
 app.use(userRoutes);
 app.use(scholarshipRoutes);
 app.use(facultyRoutes);

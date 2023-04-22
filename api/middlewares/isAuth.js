@@ -1,4 +1,3 @@
-
 const jwt = require("jsonwebtoken");
 
 // Authentication middleware
@@ -18,6 +17,7 @@ const authenticateToken = (req, res, next) => {
       });
     }
     req.userId = decodedToken.userId;
+    req.userRole = decodedToken.userRole;
     next();
   } catch (err) {
     return res.status(401).json({
