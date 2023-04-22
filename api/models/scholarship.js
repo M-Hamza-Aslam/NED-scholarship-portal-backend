@@ -13,7 +13,6 @@ const scholarshipSchema = new Schema({
   issueDate: {
     type: Date,
     required: true,
-    // default: Date.now()
   },
   closeDate: {
     type: Date,

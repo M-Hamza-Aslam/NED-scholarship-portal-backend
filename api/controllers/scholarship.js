@@ -1,9 +1,14 @@
 const { validationResult } = require("express-validator");
-const jwt = require("jsonwebtoken");
+
 const Scholarship = require("../models/scholarship");
 const User = require("../models/user");
+const { getContentType } = require("../../util/contentType");
 
+const jwt = require("jsonwebtoken");
 const url = require("url");
+const path = require("path");
+const fs = require("fs");
+const { createReadStream } = require("fs");
 
 module.exports = {
   getScholarshipList: async (req, res) => {
@@ -17,15 +22,26 @@ module.exports = {
 
       // Modifying the date format
       const scholarshipData = scholarshipList.map((scholarship) => {
+        const issueDate = new Date(scholarship.issueDate);
+        const closeDate = new Date(scholarship.closeDate);
+
         return {
           ...scholarship.toObject(),
-          date: (() => {
-            const date = new Date(scholarship.date);
-            const month = date.toLocaleString("default", { month: "long" });
-            const day = date.getDate();
-            const year = date.getFullYear();
-            return { month, day, year };
-          })(),
+          issueDate: {
+            month: issueDate.toLocaleString("default", { month: "long" }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
+          },
         };
       });
 
@@ -38,6 +54,7 @@ module.exports = {
       });
     }
   },
+
   getScholarshipListById: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -55,16 +72,28 @@ module.exports = {
       }
 
       // Modifying the date format
-      const scholarshipData = {
-        ...foundScholarship.toObject(),
-        date: (() => {
-          const date = new Date(foundScholarship.date);
-          const month = date.toLocaleString("default", { month: "long" });
-          const day = date.getDate();
-          const year = date.getFullYear();
-          return { month, day, year };
-        })(),
-      };
+      const issueDate = new Date(foundScholarship.issueDate);
+      const closeDate = new Date(foundScholarship.closeDate);
+      const scholarshipData = [
+        {
+          ...foundScholarship.toObject(),
+          issueDate: {
+            month: issueDate.toLocaleString("default", { month: "long" }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
+          },
+        },
+      ];
 
       console.log(scholarshipData);
       res.json(scholarshipData);
@@ -75,6 +104,7 @@ module.exports = {
       });
     }
   },
+
   getFeaturedScholarshipList: async (req, res) => {
     try {
       // Parse the URL using the Node.js built-in url module.
@@ -93,15 +123,26 @@ module.exports = {
 
       // Modifying the date format
       const scholarshipData = topScholarships.map((scholarship) => {
+        const issueDate = new Date(scholarship.issueDate);
+        const closeDate = new Date(scholarship.closeDate);
+
         return {
           ...scholarship.toObject(),
-          date: (() => {
-            const date = new Date(scholarship.date);
-            const month = date.toLocaleString("default", { month: "long" });
-            const day = date.getDate();
-            const year = date.getFullYear();
-            return { month, day, year };
-          })(),
+          issueDate: {
+            month: issueDate.toLocaleString("default", { month: "long" }),
+            day: issueDate.getDate(),
+            year: issueDate.getFullYear(),
+          },
+          closeDate: {
+            // Check if closeDate is a valid date before formatting
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
+          },
         };
       });
 
@@ -114,6 +155,7 @@ module.exports = {
       });
     }
   },
+
   getAppliedScholarshipList: async (req, res) => {
     try {
       const authHeader = req.headers["authorization"];
@@ -145,6 +187,7 @@ module.exports = {
       });
     }
   },
+
   appliedScholarship: async (req, res) => {
     try {
       const authHeader = req.headers["authorization"];
@@ -190,8 +233,64 @@ module.exports = {
         user.appliedScholarship.push({ scholarshipId, status: "awaiting" });
         await user.save();
 
-        return res.json({ success: "Applied scholarship added to user" });
+        // Gettiing the updated applied scholarship object
+        let updatedAppliedScholarships = user.appliedScholarship;
+
+        return res.json({
+          success: "Applied scholarship added to user",
+          appliedScholarships: updatedAppliedScholarships,
+        });
       }
+    } catch (error) {
+      console.error("Error in appliedScholarship", error);
+      return res.status(500).json({
+        message: "Something went wrong with the API",
+        error: error.message,
+      });
+    }
+  },
+
+  getScholarshipImg: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const scholarshipId = req.params.id;
+
+      const foundScholarship = await Scholarship.findById(scholarshipId);
+      console.log(foundScholarship);
+      if (!foundScholarship) {
+        return res.status(404).json({
+          message: "Scholarship not found",
+        });
+      }
+
+      let scholarshipImg = foundScholarship.image;
+      console.log(scholarshipImg);
+      if (!scholarshipImg) {
+        return res.status(400).json({
+          message: "Scholarship image not found",
+        });
+      }
+
+      const filePath = path.resolve("images/scholarshipImg/" + scholarshipImg);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
     } catch (error) {
       console.error("Error in appliedScholarship", error);
       return res.status(500).json({
