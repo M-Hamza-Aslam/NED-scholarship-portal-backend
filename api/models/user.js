@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Scholarship = require("./scholarship");
 
 const Schema = mongoose.Schema;
 
@@ -56,9 +57,20 @@ const userSchema = new Schema({
     type: Array,
     required: true,
   },
-  appliedScholarship: {
-    type: Array,
-  },
+  appliedScholarship: [
+    {
+      scholarshipId: {
+        type: Schema.Types.ObjectId,
+        ref: "Scholarship",
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ["awaiting", "approved", "declined"],
+        required: true,
+      },
+    },
+  ],
   resetToken: String,
   resetTokenExpiration: Date,
 });

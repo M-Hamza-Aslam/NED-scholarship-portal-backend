@@ -9,6 +9,7 @@ const url = require("url");
 const path = require("path");
 const fs = require("fs");
 const { createReadStream } = require("fs");
+const mongoose = require("mongoose");
 
 module.exports = {
   getScholarshipList: async (req, res) => {
@@ -155,26 +156,24 @@ module.exports = {
 
   getAppliedScholarshipList: async (req, res) => {
     try {
-      const authHeader = req.headers["authorization"];
-      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
-      if (!token) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const decodedToken = jwt.decode(token, { complete: true });
-      const userId = decodedToken.payload.userId; // extract userId from token
-
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
+
+      const userId = req.userId; // extract userId from token
 
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      let appliedScholarships = user.appliedScholarship;
+      let appliedScholarships = user.appliedScholarship.map((scholarship) => {
+        return {
+          status: scholarship.status,
+          scholarshipId: scholarship.scholarshipId.toString(),
+        };
+      });
 
       res.json({ appliedScholarships });
     } catch (error) {
@@ -187,14 +186,7 @@ module.exports = {
 
   appliedScholarship: async (req, res) => {
     try {
-      const authHeader = req.headers["authorization"];
-      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
-      if (!token) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const decodedToken = jwt.decode(token, { complete: true });
-      const userId = decodedToken.payload.userId; // extract userId from token
+      const userId = req.userId; // extract userId from token
 
       const { body } = req;
       const errors = validationResult(req);
@@ -211,7 +203,7 @@ module.exports = {
       }
 
       const hasApplied = user.appliedScholarship.some(
-        (scholarship) => scholarship.scholarshipId === scholarshipId
+        (scholarship) => scholarship.scholarshipId.toString() === scholarshipId
       );
 
       if (hasApplied) {
@@ -227,12 +219,21 @@ module.exports = {
       if (hasApproved) {
         return res.json({ error: "User already has an approved scholarship" });
       } else {
-        user.appliedScholarship.push({ scholarshipId, status: "awaiting" });
+        user.appliedScholarship.push({
+          scholarshipId: new mongoose.Types.ObjectId(scholarshipId),
+          status: "awaiting",
+        });
         await user.save();
 
         // Gettiing the updated applied scholarship object
-        let updatedAppliedScholarships = user.appliedScholarship;
-
+        const updatedAppliedScholarships = user.appliedScholarship.map(
+          (scholarship) => {
+            return {
+              status: scholarship.status,
+              scholarshipId: scholarship.scholarshipId.toString(),
+            };
+          }
+        );
         return res.json({
           success: "Applied scholarship added to user",
           appliedScholarships: updatedAppliedScholarships,
