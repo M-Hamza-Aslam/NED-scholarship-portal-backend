@@ -2,38 +2,31 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const scholarshipSchema = new Schema({
-  title: {
+const adminSchema = new Schema({
+  firstName: {
     type: String,
     required: true,
   },
-  image: {
-    type: String,
-  },
-  issueDate: {
-    type: Date,
-    required: true,
-  },
-  closeDate: {
-    type: Date,
-    required: true,
-  },
-  status: {
+  lastName: {
     type: String,
     required: true,
   },
-  description: {
+  userRole: {
     type: String,
     required: true,
   },
-  eligibilityCriteria: {
+  email: {
     type: String,
     required: true,
   },
-  instructions: {
+  password: {
+    type: String,
+    required: true,
+  },
+  phoneNumber: {
     type: String,
     required: true,
   },
 });
 
-module.exports = mongoose.model("Scholarship", scholarshipSchema);
+module.exports = mongoose.model("Admin", adminSchema);

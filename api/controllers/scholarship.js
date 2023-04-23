@@ -1,55 +1,52 @@
-
 const { validationResult } = require("express-validator");
 
 const Scholarship = require("../models/scholarship");
 const User = require("../models/user");
 const { getContentType } = require("../../util/contentType");
 
-const jwt = require('jsonwebtoken');
-const url = require('url');
+const jwt = require("jsonwebtoken");
+const url = require("url");
 const path = require("path");
 const fs = require("fs");
 const { createReadStream } = require("fs");
 
-
 module.exports = {
-  getScholarshipList: async(req, res) => {
+  getScholarshipList: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      
       const scholarshipList = await Scholarship.find();
 
       // Modifying the date format
-      const scholarshipData = scholarshipList.map(scholarship => {
+      const scholarshipData = scholarshipList.map((scholarship) => {
         const issueDate = new Date(scholarship.issueDate);
         const closeDate = new Date(scholarship.closeDate);
-      
+
         return {
           ...scholarship.toObject(),
           issueDate: {
-            month: issueDate.toLocaleString('default', { month: 'long' }),
+            month: issueDate.toLocaleString("default", { month: "long" }),
             day: issueDate.getDate(),
             year: issueDate.getFullYear(),
           },
           closeDate: {
             // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime()) ? {} : {
-              month: closeDate.toLocaleString('default', { month: 'long' }),
-              day: closeDate.getDate(),
-              year: closeDate.getFullYear(),
-            }),
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
           },
         };
       });
-      
 
       console.log(scholarshipData);
       res.json(scholarshipData);
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -58,8 +55,8 @@ module.exports = {
     }
   },
 
-  getScholarshipListById: async(req,res) => {
-    try{
+  getScholarshipListById: async (req, res) => {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
@@ -69,36 +66,37 @@ module.exports = {
 
       const foundScholarship = await Scholarship.findById(id);
       if (!foundScholarship) {
-        return res.status(404).json({ 
-          message: "Scholarship not found" 
+        return res.status(404).json({
+          message: "Scholarship not found",
         });
       }
 
       // Modifying the date format
       const issueDate = new Date(foundScholarship.issueDate);
       const closeDate = new Date(foundScholarship.closeDate);
-      const scholarshipData = [ 
+      const scholarshipData = [
         {
           ...foundScholarship.toObject(),
           issueDate: {
-            month: issueDate.toLocaleString('default', { month: 'long' }),
+            month: issueDate.toLocaleString("default", { month: "long" }),
             day: issueDate.getDate(),
             year: issueDate.getFullYear(),
           },
           closeDate: {
             // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime()) ? {} : {
-              month: closeDate.toLocaleString('default', { month: 'long' }),
-              day: closeDate.getDate(),
-              year: closeDate.getFullYear(),
-            }),
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
           },
-        }
+        },
       ];
-      
+
       console.log(scholarshipData);
       res.json(scholarshipData);
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -107,9 +105,8 @@ module.exports = {
     }
   },
 
-  getFeaturedScholarshipList: async(req,res) => {
-    try{
-
+  getFeaturedScholarshipList: async (req, res) => {
+    try {
       // Parse the URL using the Node.js built-in url module.
       const urlObj = url.parse(req.url, true);
 
@@ -119,38 +116,38 @@ module.exports = {
       // Converting the qty parameter to a number.
       const qtyNum = parseInt(qty);
 
-      // Fetching the top ten scholarship lists from your MongoDB database. 
+      // Fetching the top ten scholarship lists from your MongoDB database.
       const topScholarships = await Scholarship.find()
         .sort({ popularity: -1 })
         .limit(qtyNum);
 
-       // Modifying the date format
-      const scholarshipData = topScholarships.map(scholarship => {
+      // Modifying the date format
+      const scholarshipData = topScholarships.map((scholarship) => {
         const issueDate = new Date(scholarship.issueDate);
         const closeDate = new Date(scholarship.closeDate);
-      
+
         return {
           ...scholarship.toObject(),
           issueDate: {
-            month: issueDate.toLocaleString('default', { month: 'long' }),
+            month: issueDate.toLocaleString("default", { month: "long" }),
             day: issueDate.getDate(),
             year: issueDate.getFullYear(),
           },
           closeDate: {
             // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime()) ? {} : {
-              month: closeDate.toLocaleString('default', { month: 'long' }),
-              day: closeDate.getDate(),
-              year: closeDate.getFullYear(),
-            }),
+            ...(isNaN(closeDate.getTime())
+              ? {}
+              : {
+                  month: closeDate.toLocaleString("default", { month: "long" }),
+                  day: closeDate.getDate(),
+                  year: closeDate.getFullYear(),
+                }),
           },
         };
       });
-      
 
       console.log(scholarshipData);
       res.json(scholarshipData);
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -160,21 +157,20 @@ module.exports = {
   },
 
   getAppliedScholarshipList: async (req, res) => {
-    try{
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1]; // extract token from header
+    try {
+      const authHeader = req.headers["authorization"];
+      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
       if (!token) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const decodedToken = jwt.decode(token, { complete: true });
       const userId = decodedToken.payload.userId; // extract userId from token
-      
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-      
 
       const user = await User.findById(userId);
       if (!user) {
@@ -184,8 +180,6 @@ module.exports = {
       let appliedScholarships = user.appliedScholarship;
 
       res.json({ appliedScholarships });
-
-
     } catch (error) {
       res.status(500).json({
         message: "Something went wrong with the api",
@@ -194,55 +188,57 @@ module.exports = {
     }
   },
 
-  appliedScholarship:async (req, res) => {
+  appliedScholarship: async (req, res) => {
     try {
-      const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1]; // extract token from header
+      const authHeader = req.headers["authorization"];
+      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
       if (!token) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       const decodedToken = jwt.decode(token, { complete: true });
       const userId = decodedToken.payload.userId; // extract userId from token
-      
+
       const { body } = req;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-      
+
       const { scholarshipId } = body;
-      
+
       const user = await User.findById(userId);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const hasApplied = user.appliedScholarship.some(
         (scholarship) => scholarship.scholarshipId === scholarshipId
       );
-      
+
       if (hasApplied) {
-        return res.json({ error: "User has already applied to this scholarship" });
+        return res.json({
+          error: "User has already applied to this scholarship",
+        });
       }
-      
+
       const hasApproved = user.appliedScholarship.some(
         (scholarship) => scholarship.status === "approved"
       );
-      
+
       if (hasApproved) {
         return res.json({ error: "User already has an approved scholarship" });
       } else {
-        user.appliedScholarship.push({ scholarshipId, status:"awaiting" });
+        user.appliedScholarship.push({ scholarshipId, status: "awaiting" });
         await user.save();
-        
-        // Gettiing the updated applied scholarship object 
+
+        // Gettiing the updated applied scholarship object
         let updatedAppliedScholarships = user.appliedScholarship;
 
-        return res.json({ 
+        return res.json({
           success: "Applied scholarship added to user",
-          appliedScholarships: updatedAppliedScholarships
+          appliedScholarships: updatedAppliedScholarships,
         });
       }
     } catch (error) {
@@ -251,35 +247,35 @@ module.exports = {
         message: "Something went wrong with the API",
         error: error.message,
       });
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+    }
   },
 
   getScholarshipImg: async (req, res) => {
-    try{
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const scholarshipId  = req.params.id;
+      const scholarshipId = req.params.id;
 
       const foundScholarship = await Scholarship.findById(scholarshipId);
       console.log(foundScholarship);
       if (!foundScholarship) {
-        return res.status(404).json({ 
-          message: "Scholarship not found" 
+        return res.status(404).json({
+          message: "Scholarship not found",
         });
       }
 
       let scholarshipImg = foundScholarship.image;
-      console.log(scholarshipImg)
+      console.log(scholarshipImg);
       if (!scholarshipImg) {
         return res.status(400).json({
           message: "Scholarship image not found",
         });
       }
 
-      const filePath = path.resolve('images/scholarshipImg/'+ scholarshipImg);
+      const filePath = path.resolve("images/scholarshipImg/" + scholarshipImg);
       if (!fs.existsSync(filePath)) {
         return res.status(401).json({
           message: "Invalid File",
@@ -295,13 +291,12 @@ module.exports = {
       });
 
       fileStream.pipe(res);
-
-    }catch (error) {
+    } catch (error) {
       console.error("Error in appliedScholarship", error);
       return res.status(500).json({
         message: "Something went wrong with the API",
         error: error.message,
       });
     }
-  }
+  },
 };
