@@ -74,27 +74,24 @@ module.exports = {
       // Modifying the date format
       const issueDate = new Date(foundScholarship.issueDate);
       const closeDate = new Date(foundScholarship.closeDate);
-      const scholarshipData = [
-        {
-          ...foundScholarship.toObject(),
-          issueDate: {
-            month: issueDate.toLocaleString("default", { month: "long" }),
-            day: issueDate.getDate(),
-            year: issueDate.getFullYear(),
-          },
-          closeDate: {
-            // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime())
-              ? {}
-              : {
-                  month: closeDate.toLocaleString("default", { month: "long" }),
-                  day: closeDate.getDate(),
-                  year: closeDate.getFullYear(),
-                }),
-          },
+      const scholarshipData = {
+        ...foundScholarship.toObject(),
+        issueDate: {
+          month: issueDate.toLocaleString("default", { month: "long" }),
+          day: issueDate.getDate(),
+          year: issueDate.getFullYear(),
         },
-      ];
-
+        closeDate: {
+          // Check if closeDate is a valid date before formatting
+          ...(isNaN(closeDate.getTime())
+            ? {}
+            : {
+                month: closeDate.toLocaleString("default", { month: "long" }),
+                day: closeDate.getDate(),
+                year: closeDate.getFullYear(),
+              }),
+        },
+      };
       console.log(scholarshipData);
       res.json(scholarshipData);
     } catch (error) {

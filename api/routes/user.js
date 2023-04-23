@@ -20,6 +20,7 @@ const {
   uploadDocuments,
   sendDocument,
   deleteDocument,
+  getAppliedScholarships,
 } = require("../controllers/user");
 
 const authenticateToken = require("../middlewares/isAuth");
@@ -76,6 +77,14 @@ const validateResetPassword = [
 // Validation middleware for Personal Information
 const validatePersonalInfo = [
   body("firstName").notEmpty().withMessage("First Name is Empty"),
+  body("personalInfo.rollNo").custom((value, { req }) => {
+    console.log(value);
+    const regex = /^[A-Za-z]{2}-\d{5}$/;
+    if (!regex.test(value.trim())) {
+      return Promise.reject("Roll No is invalid!");
+    }
+    return true;
+  }),
 ];
 
 // Validation middleware for Family Details
@@ -169,5 +178,7 @@ router.post(
 router.get("/document", authenticateToken, sendDocument);
 
 router.delete("/document", authenticateToken, deleteDocument);
+
+router.get("/applied-scholarships", authenticateToken, getAppliedScholarships);
 
 module.exports = router;

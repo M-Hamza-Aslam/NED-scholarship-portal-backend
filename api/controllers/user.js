@@ -8,8 +8,10 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { getContentType } = require("../../util/contentType");
 const User = require("../models/user");
+const Scholarship = require("../models/scholarship");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
+const scholarship = require("./scholarship");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -755,6 +757,42 @@ module.exports = {
     } catch (error) {
       res.status(500).json({
         message: "Internal server error",
+      });
+    }
+  },
+  getAppliedScholarships: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const userId = req.userId;
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const appliedScholarships = user.appliedScholarship;
+
+      const populatedAppliedScholarships = appliedScholarships.map(
+        async (scholarship) => {
+          const scholarshipData = await Scholarship.findById(
+            scholarship.scholarshipId
+          );
+          return {
+            ...scholarshipData,
+            status: scholarship.status,
+          };
+        }
+      );
+
+      res.json({ populatedAppliedScholarships });
+    } catch (error) {
+      res.status(500).json({
+        message: "Something went wrong with the api",
+        error: error.message,
       });
     }
   },
