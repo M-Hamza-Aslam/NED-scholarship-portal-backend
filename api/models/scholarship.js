@@ -5,37 +5,35 @@ const Schema = mongoose.Schema;
 const scholarshipSchema = new Schema({
   title: {
     type: String,
-    required: true
-  },
-  issueDate: {
-    type: Date,
-    default: Date.now()
-  },  
-  closeDate: {
-    type: Date,
-    required: true
+    required: true,
   },
   image: {
     type: String,
-    required: true
+  },
+  issueDate: {
+    type: Date,
+    required: true,
+  },
+  closeDate: {
+    type: Date,
+    required: true,
   },
   status: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   eligibilityCriteria: {
     type: String,
-    required: true
+    required: true,
   },
-  Instructions: {
+  instructions: {
     type: String,
-    required: true
+    required: true,
   },
-  
 });
 
 module.exports = mongoose.model("Scholarship", scholarshipSchema);
