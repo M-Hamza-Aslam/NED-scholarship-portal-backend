@@ -771,7 +771,32 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const appliedScholarships = user.appliedScholarship;
+      const appliedScholarships = user.appliedScholarship.map((scholarship) => {
+        const issueDate = new Date(scholarship.scholarshipId.issueDate);
+        const closeDate = new Date(scholarship.scholarshipId.closeDate);
+        return {
+          status: scholarship.status,
+          scholarshipDetails: {
+            _id: scholarship.scholarshipId._id,
+            title: scholarship.scholarshipId.title,
+            image: scholarship.scholarshipId.image,
+            issueDate: {
+              month: issueDate.toLocaleString("default", { month: "long" }),
+              day: issueDate.getDate(),
+              year: issueDate.getFullYear(),
+            },
+            closeDate: {
+              month: closeDate.toLocaleString("default", { month: "long" }),
+              day: closeDate.getDate(),
+              year: closeDate.getFullYear(),
+            },
+            status: scholarship.scholarshipId.status,
+            description: scholarship.scholarshipId.description,
+            eligibilityCriteria: scholarship.scholarshipId.eligibilityCriteria,
+            instructions: scholarship.scholarshipId.instructions,
+          },
+        };
+      });
 
       res.json(appliedScholarships);
     } catch (error) {
