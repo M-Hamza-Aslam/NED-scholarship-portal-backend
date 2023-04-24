@@ -157,7 +157,7 @@ module.exports = {
         image: "",
         issueDate: Date.now(),
         closeDate,
-        status: "Active",
+        status: "active",
         description,
         eligibilityCriteria,
         instructions,
@@ -349,7 +349,6 @@ module.exports = {
           ).status,
         };
       });
-      console.log(users);
 
       res.status(200).json({ users });
     } catch (error) {
