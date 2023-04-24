@@ -9,6 +9,7 @@ const {
   getUserData,
   sendUserProfileImg,
   sendDocument,
+  updateScholarshipStatus
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -86,5 +87,7 @@ router.get("/user-data", authenticateToken, getUserData);
 router.get("/userProfileImg", authenticateToken, sendUserProfileImg);
 
 router.get("/document", authenticateToken, sendDocument);
+
+router.post("/update-scholarship-status", authenticateToken, updateScholarshipStatus)
 
 module.exports = router;

@@ -325,4 +325,42 @@ module.exports = {
       });
     }
   },
+  updateScholarshipStatus: async (req, res) => {
+    try{
+    const { userId, scholarshipId, updatedStatus } = req.body;
+
+    // Find user with given userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        message: "User not found" 
+      });
+    }
+
+    let appliedScholarships = user.appliedScholarship;
+
+    // Find scholarship with given scholarshipId in appliedScholarship array
+    const foundScholarship = appliedScholarships.find(
+      (as) => as.scholarshipId.toString() === scholarshipId.toString()
+    );
+    if (!foundScholarship) {
+      return res.status(404).json({ message: "Scholarship not found" });
+    }
+
+    foundScholarship.status = updatedStatus;
+    await user.save();
+
+    res.json({ 
+      User: user,
+      message: "Scholarship status updated successfully" 
+    });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ 
+        error: err.message, 
+        message: "Internal server error" 
+      });
+    }
+  }
 };
