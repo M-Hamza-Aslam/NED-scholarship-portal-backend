@@ -158,14 +158,7 @@ module.exports = {
 
   getAppliedScholarshipList: async (req, res) => {
     try {
-      const authHeader = req.headers["authorization"];
-      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
-      if (!token) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const decodedToken = jwt.decode(token, { complete: true });
-      const userId = decodedToken.payload.userId; // extract userId from token
+      const userId = req.userId; // extracted userId from token
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -190,14 +183,8 @@ module.exports = {
 
   appliedScholarship: async (req, res) => {
     try {
-      const authHeader = req.headers["authorization"];
-      const token = authHeader && authHeader.split(" ")[1]; // extract token from header
-      if (!token) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      const decodedToken = jwt.decode(token, { complete: true });
-      const userId = decodedToken.payload.userId; // extract userId from token
+     
+      const userId = req.userId; // extract userId from token
 
       const { body } = req;
       const errors = validationResult(req);
