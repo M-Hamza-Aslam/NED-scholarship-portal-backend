@@ -8,6 +8,7 @@ const { getContentType } = require("../../util/contentType");
 const path = require("path");
 const fs = require("fs");
 const { createReadStream } = require("fs");
+const { default: mongoose } = require("mongoose");
 
 module.exports = {
   //For admin login
@@ -318,6 +319,39 @@ module.exports = {
       });
 
       fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  appliedUsersList: async (req, res) => {
+    try {
+      //getting scholarship Id from client
+      const scholarshipId = req.query.scholarshipId;
+      //finding users
+      let users = await User.find({
+        appliedScholarship: {
+          $elemMatch: {
+            scholarshipId: scholarshipId,
+          },
+        },
+      });
+
+      users = users.map((user) => {
+        return {
+          _id: user._id.toString(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          status: user.appliedScholarship.find(
+            (s) => s.scholarshipId.toString() === scholarshipId
+          ).status,
+        };
+      });
+      console.log(users);
+
+      res.status(200).json({ users });
     } catch (error) {
       console.log(error);
       res.status(500).json({

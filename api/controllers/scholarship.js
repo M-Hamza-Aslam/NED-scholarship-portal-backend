@@ -19,7 +19,7 @@ module.exports = {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const scholarshipList = await Scholarship.find();
+      const scholarshipList = await Scholarship.find().sort({ _id: -1 });
 
       // Modifying the date format
       const scholarshipData = scholarshipList.map((scholarship) => {
