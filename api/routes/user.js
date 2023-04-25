@@ -26,83 +26,16 @@ const {
 const authenticateToken = require("../middlewares/isAuth");
 const upload = require("../../util/multer");
 
-const { body } = require("express-validator");
-
-// Validation middleware for login
-const validateLogin = [
-  body("email", "Invalid email")
-    .isEmail()
-    .normalizeEmail({ gmail_remove_dots: false }),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
-  body("userRole", "User role must be provided").notEmpty(),
-];
-
-// Validation middleware for sign up
-const validateSignUp = [
-  body("firstName").notEmpty().withMessage("First name is required"),
-  body("lastName").notEmpty().withMessage("Last name is required"),
-  body("email")
-    .isEmail()
-    .normalizeEmail({ gmail_remove_dots: false })
-    .withMessage("Invalid email"),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
-  body("phoneNumber")
-    .notEmpty()
-    .withMessage("Phone number is required")
-    // .isNumeric()
-    // .withMessage("Phone number should only contain digits")
-    .isLength({ min: 12, max: 12 })
-    .withMessage("Phone number should be 12 digits long"),
-];
-
-// Validation middleware for Forgot Password
-const validateForgotPassword = [
-  body("email")
-    .isEmail()
-    .normalizeEmail({ gmail_remove_dots: false })
-    .withMessage("Invalid email"),
-];
-
-// Validation middleware for Reset Password
-const validateResetPassword = [
-  body("newPassword")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
-];
-
-// Validation middleware for Personal Information
-const validatePersonalInfo = [
-  body("firstName").notEmpty().withMessage("First Name is Empty"),
-  body("personalInfo.rollNo").custom((value, { req }) => {
-    console.log(value);
-    const regex = /^[A-Za-z]{2}-\d{5}$/;
-    if (!regex.test(value.trim())) {
-      return Promise.reject("Roll No is invalid!");
-    }
-    return true;
-  }),
-];
-
-// Validation middleware for Family Details
-const validateFamilyDetails = [
-  body("familyDetails.fatherHealthStatus")
-    .notEmpty()
-    .withMessage("First Name is Empty"),
-];
-
-// Validation middleware for Education Details
-const validateEducationDetails = [
-  body("educationData.class").notEmpty().withMessage("Class is empty"),
-];
-
-// Validation middleware for Dependant Details
-const validateDependantDetails = [
-  body("dependantData.name").notEmpty().withMessage("Dependant name is empty"),
-];
+const {
+  validateLogin,
+  validateSignUp,
+  validateForgotPassword,
+  validateResetPassword,
+  validatePersonalInfo,
+  validateFamilyDetails,
+  validateEducationDetails,
+  validateDependantDetails,
+} = require("../../util/inputValidation");
 
 //Routes
 router.post("/login", validateLogin, login);
