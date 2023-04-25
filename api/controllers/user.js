@@ -635,7 +635,6 @@ module.exports = {
     try {
       //extracting files coming from frontend
       const files = req.files;
-      console.log(files);
       if (!files) {
         return res.status(415).json({
           message: "Invalid Files",
@@ -653,7 +652,6 @@ module.exports = {
       const fileNames = files.map((file) => {
         return file.filename;
       });
-      console.log(fileNames);
       //updating database
       user.education.documents = [...user.education.documents, ...fileNames];
       const updatedUser = await user.save();

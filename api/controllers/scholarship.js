@@ -46,7 +46,6 @@ module.exports = {
         };
       });
 
-      console.log(scholarshipData);
       res.json(scholarshipData);
     } catch (error) {
       res.status(500).json({
@@ -93,7 +92,6 @@ module.exports = {
               }),
         },
       };
-      console.log(scholarshipData);
       res.json(scholarshipData);
     } catch (error) {
       res.status(500).json({
@@ -144,7 +142,6 @@ module.exports = {
         };
       });
 
-      console.log(scholarshipData);
       res.json(scholarshipData);
     } catch (error) {
       res.status(500).json({
@@ -258,7 +255,6 @@ module.exports = {
       const scholarshipId = req.params.id;
 
       const foundScholarship = await Scholarship.findById(scholarshipId);
-      console.log(foundScholarship);
       if (!foundScholarship) {
         return res.status(404).json({
           message: "Scholarship not found",
@@ -266,7 +262,6 @@ module.exports = {
       }
 
       let scholarshipImg = foundScholarship.image;
-      console.log(scholarshipImg);
       if (!scholarshipImg) {
         return res.status(400).json({
           message: "Scholarship image not found",
