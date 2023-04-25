@@ -16,6 +16,7 @@ const authenticateToken = (req, res, next) => {
         message: "Invalid Token!",
       });
     }
+    req.token = token;
     req.userId = decodedToken.userId;
     req.userRole = decodedToken.userRole;
     next();

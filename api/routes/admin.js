@@ -10,6 +10,7 @@ const {
   sendUserProfileImg,
   sendDocument,
   appliedUsersList,
+  updateScholarshipStatus,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -89,5 +90,11 @@ router.get("/userProfileImg", authenticateToken, sendUserProfileImg);
 router.get("/document", authenticateToken, sendDocument);
 
 router.get("/appliedUsersList", authenticateToken, appliedUsersList);
+
+router.post(
+  "/update-scholarship-status",
+  authenticateToken,
+  updateScholarshipStatus
+);
 
 module.exports = router;

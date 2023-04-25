@@ -358,4 +358,38 @@ module.exports = {
       });
     }
   },
+  updateScholarshipStatus: async (req, res) => {
+    try {
+      const { userId, scholarshipId, updatedStatus } = req.body;
+
+      // Find user with given userId
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found",
+        });
+      }
+
+      // Find scholarship and change status
+
+      user.appliedScholarship.forEach((scholarship) => {
+        if (scholarship.scholarshipId.toString() === scholarshipId) {
+          scholarship.status = updatedStatus;
+        }
+      });
+
+      await user.save();
+
+      res.status(201).json({
+        User: user,
+        message: "Scholarship status updated successfully",
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        error: err.message,
+        message: "Internal server error",
+      });
+    }
+  },
 };
