@@ -90,6 +90,7 @@ router.get("/userProfileImg", authenticateToken, sendUserProfileImg);
 router.get("/document", authenticateToken, sendDocument);
 
 router.get("/appliedUsersList", authenticateToken, appliedUsersList);
+
 router.post(
   "/update-scholarship-status",
   authenticateToken,

@@ -370,20 +370,17 @@ module.exports = {
         });
       }
 
-      let appliedScholarships = user.appliedScholarship;
+      // Find scholarship and change status
 
-      // Find scholarship with given scholarshipId in appliedScholarship array
-      const foundScholarship = appliedScholarships.find(
-        (as) => as.scholarshipId.toString() === scholarshipId.toString()
-      );
-      if (!foundScholarship) {
-        return res.status(404).json({ message: "Scholarship not found" });
-      }
+      user.appliedScholarship.forEach((scholarship) => {
+        if (scholarship.scholarshipId.toString() === scholarshipId) {
+          scholarship.status = updatedStatus;
+        }
+      });
 
-      foundScholarship.status = updatedStatus;
       await user.save();
 
-      res.json({
+      res.status(201).json({
         User: user,
         message: "Scholarship status updated successfully",
       });
