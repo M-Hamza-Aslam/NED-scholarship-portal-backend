@@ -21,6 +21,40 @@ const transporter = nodemailer.createTransport(
 );
 
 module.exports = {
+  getContactFormData: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+      const { name, email, message } = req.body;
+      //sending email
+      transporter.sendMail(
+        {
+          // to: "support@cloud.neduet.edu.pk",
+          to: "hamza.prolink@gmail.com",
+          from: "hamza.prolink@gmail.com",
+          replyTo: email,
+          subject: `${name} filled contact form`,
+          html: `
+          <h3>Message from ${name}:</h3>
+          <p>${message}</p>
+        `,
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+      res.status(201).json({
+        message: "We have got yor message! we will contact you soon.",
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Something went wrong with the api",
+        error: error.message,
+      });
+    }
+  },
   //For student login
   login: async (req, res) => {
     try {
@@ -256,7 +290,7 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
       if (user.personalInfo.isInitial) {
-        user.profileStatus += 25;
+        user.profileStatus += 20;
         user.personalInfo.isInitial = false;
       }
       //update info
@@ -589,11 +623,16 @@ module.exports = {
         });
       }
       const imageUrl = image.path.replace(/\\/g, "/");
+      //updating profileStatus if uploading image firstTime;
+      if (user.profileImg === "") {
+        user.profileStatus += 5;
+      }
       user.profileImg = imageUrl;
       const updatedUser = await user.save();
       res.status(201).json({
         message: "file Uploaded",
         profileImg: updatedUser.profileImg,
+        profileStatus: updatedUser.profileStatus,
       });
     } catch (error) {
       console.log(error);

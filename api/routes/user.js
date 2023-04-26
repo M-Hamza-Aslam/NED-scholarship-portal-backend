@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const {
+  getContactFormData,
   login,
   signUp,
   forgotPassword,
@@ -27,6 +28,7 @@ const authenticateToken = require("../middlewares/isAuth");
 const upload = require("../../util/multer");
 
 const {
+  validateContactForm,
   validateLogin,
   validateSignUp,
   validateForgotPassword,
@@ -38,6 +40,8 @@ const {
 } = require("../../util/inputValidation");
 
 //Routes
+router.post("/send-contact-form", validateContactForm, getContactFormData);
+
 router.post("/login", validateLogin, login);
 
 router.post("/signup", validateSignUp, signUp);

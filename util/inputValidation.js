@@ -1,6 +1,14 @@
 const { body } = require("express-validator");
 
 module.exports = {
+  // Validation middleware for contactForm
+  validateContactForm: [
+    body("name", "Please Provide a valid name").notEmpty(),
+    body("email", "Please Provide a valid email")
+      .isEmail()
+      .normalizeEmail({ gmail_remove_dots: false }),
+    body("message", "please provide a valid message").notEmpty(),
+  ],
   // Validation middleware for login
   validateLogin: [
     body("email", "Invalid email")
