@@ -267,8 +267,8 @@ module.exports = {
           message: "Scholarship image not found",
         });
       }
-
       const filePath = path.resolve("images/scholarshipImg/" + scholarshipImg);
+      console.log(filePath);
       if (!fs.existsSync(filePath)) {
         return res.status(401).json({
           message: "Invalid File",
