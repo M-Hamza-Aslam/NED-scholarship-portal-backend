@@ -6,7 +6,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const adminRoutes = require("./api/routes/admin");
 const userRoutes = require("./api/routes/user");
-const facultyRoutes = require("./api/routes/faculty");
 const scholarshipRoutes = require("./api/routes/scholarship");
 const app = express();
 
@@ -33,7 +32,6 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use(userRoutes);
 app.use(scholarshipRoutes);
-app.use(facultyRoutes);
 
 // setting mongoose connection and starting server
 mongoose.set("strictQuery", false);

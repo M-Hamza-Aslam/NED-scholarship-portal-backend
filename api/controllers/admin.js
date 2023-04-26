@@ -370,6 +370,15 @@ module.exports = {
         });
       }
 
+      //check if updated status is approved and user has already approved scholarship
+      user.appliedScholarship.forEach((scholarship) => {
+        if (scholarship.status === "approved") {
+          return res.status(403).json({
+            message: "User already has approved scholarship",
+          });
+        }
+      });
+
       // Find scholarship and change status
 
       user.appliedScholarship.forEach((scholarship) => {
