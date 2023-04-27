@@ -303,6 +303,9 @@ module.exports = {
         message: "Personal information updated",
         updatedUserData: {
           personalInfo: updatedUser.personalInfo,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          phoneNumber: updatedUser.phoneNumber,
           profileStatus: updatedUser.profileStatus,
         },
       });
