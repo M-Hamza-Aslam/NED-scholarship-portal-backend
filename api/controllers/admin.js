@@ -186,6 +186,88 @@ module.exports = {
       });
     }
   },
+  updateScholarship: async (req, res) => {
+    try {
+      //getting data
+      const scholarshipId = req.query.scholarshipId;
+      const {
+        title,
+        closeDate,
+        description,
+        eligibilityCriteria,
+        instructions,
+      } = req.body;
+      //extracting scholarship
+      const scholarship = await Scholarship.findById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ message: "Scholarship not found" });
+      }
+      //updating scholarship
+      scholarship.title = title;
+      scholarship.closeDate = closeDate;
+      scholarship.description = description;
+      scholarship.eligibilityCriteria = eligibilityCriteria;
+      scholarship.instructions = instructions;
+      //deleting image from file system
+      fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log("Scholarship Img deleted successfully");
+          scholarship.image = "";
+        }
+      });
+      const scholarshipDetails = await scholarship.save();
+      // Returning success message
+      res.status(201).json({
+        message: "Scholarship updated successfully",
+        scholarshipDetails: {
+          _id: scholarshipDetails._id.toString(),
+          title: scholarshipDetails.title,
+          issueDate: scholarshipDetails.issueDate,
+          closeDate: scholarshipDetails.closeDate,
+          image: scholarshipDetails.image,
+          status: scholarshipDetails.status,
+          description: scholarshipDetails.description,
+          eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+          instructions: scholarshipDetails.instructions,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  deleteScholarship: async (req, res) => {
+    try {
+      const scholarshipId = req.query.scholarshipId;
+      //extracting scholarship
+      const scholarship = await Scholarship.findByIdAndRemove(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ message: "Scholarship not found" });
+      }
+      //deleting image from file system
+      fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log("Scholarship Img deleted successfully");
+          scholarship.image = "";
+        }
+      });
+      //sending response
+      res.status(201).json({
+        message: "Scholarship deleted successfully!",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
   uploadScholarshipImg: async (req, res) => {
     try {
       //extracting image file and scholarshipId coming from frontEnd
@@ -203,6 +285,9 @@ module.exports = {
       }
       //extracting scholarship
       const scholarship = await Scholarship.findById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ message: "Scholarship not found" });
+      }
       //saving image path
       scholarship.image = image.filename;
 

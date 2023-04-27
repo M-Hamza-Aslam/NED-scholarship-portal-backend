@@ -34,14 +34,9 @@ module.exports = {
             year: issueDate.getFullYear(),
           },
           closeDate: {
-            // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime())
-              ? {}
-              : {
-                  month: closeDate.toLocaleString("default", { month: "long" }),
-                  day: closeDate.getDate(),
-                  year: closeDate.getFullYear(),
-                }),
+            month: closeDate.toLocaleString("default", { month: "long" }),
+            day: closeDate.getDate(),
+            year: closeDate.getFullYear(),
           },
         };
       });
@@ -76,20 +71,17 @@ module.exports = {
       const closeDate = new Date(foundScholarship.closeDate);
       const scholarshipData = {
         ...foundScholarship.toObject(),
+        _id: foundScholarship._id.toString(),
         issueDate: {
           month: issueDate.toLocaleString("default", { month: "long" }),
           day: issueDate.getDate(),
           year: issueDate.getFullYear(),
         },
         closeDate: {
-          // Check if closeDate is a valid date before formatting
-          ...(isNaN(closeDate.getTime())
-            ? {}
-            : {
-                month: closeDate.toLocaleString("default", { month: "long" }),
-                day: closeDate.getDate(),
-                year: closeDate.getFullYear(),
-              }),
+          month: closeDate.toLocaleString("default", { month: "long" }),
+          day: closeDate.getDate(),
+          year: closeDate.getFullYear(),
+          dateObj: foundScholarship.closeDate,
         },
       };
       res.json(scholarshipData);
@@ -130,14 +122,9 @@ module.exports = {
             year: issueDate.getFullYear(),
           },
           closeDate: {
-            // Check if closeDate is a valid date before formatting
-            ...(isNaN(closeDate.getTime())
-              ? {}
-              : {
-                  month: closeDate.toLocaleString("default", { month: "long" }),
-                  day: closeDate.getDate(),
-                  year: closeDate.getFullYear(),
-                }),
+            month: closeDate.toLocaleString("default", { month: "long" }),
+            day: closeDate.getDate(),
+            year: closeDate.getFullYear(),
           },
         };
       });

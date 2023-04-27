@@ -11,6 +11,8 @@ const {
   sendDocument,
   appliedUsersList,
   updateScholarshipStatus,
+  updateScholarship,
+  deleteScholarship,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -72,6 +74,13 @@ router.post(
   validateScholarship,
   createScholarship
 );
+router.post(
+  "/update-scholarship",
+  authenticateToken,
+  validateScholarship,
+  updateScholarship
+);
+router.delete("/delete-scholarship", authenticateToken, deleteScholarship);
 router.post(
   "/upload-scholarshipImg",
   authenticateToken,
