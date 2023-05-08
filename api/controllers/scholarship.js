@@ -7,7 +7,8 @@ const { getContentType } = require("../../util/contentType");
 const jwt = require("jsonwebtoken");
 const url = require("url");
 const path = require("path");
-const fs = require("fs");
+const fs = require("@cyclic.sh/s3fs");
+// const fs = require("fs");
 const { createReadStream } = require("fs");
 const mongoose = require("mongoose");
 
