@@ -71,6 +71,12 @@ const userSchema = new Schema({
       },
     },
   ],
+  isVerified: {
+    type: Boolean,
+    required: true,
+  },
+  verificationCode: String,
+  verificationCodeExpiration: Date,
   resetToken: String,
   resetTokenExpiration: Date,
 });

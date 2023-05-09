@@ -3,6 +3,7 @@ const {
   getContactFormData,
   login,
   signUp,
+  emailVerification,
   forgotPassword,
   resetPassword,
   getLoginData,
@@ -45,6 +46,8 @@ router.post("/send-contact-form", validateContactForm, getContactFormData);
 router.post("/login", validateLogin, login);
 
 router.post("/signup", validateSignUp, signUp);
+
+router.get("/emailVerification", authenticateToken, emailVerification);
 
 router.post("/forgot-password", validateForgotPassword, forgotPassword);
 
