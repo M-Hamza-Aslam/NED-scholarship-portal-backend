@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-module.exports = {
+const controllers = {
   getContactFormData: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -114,7 +114,47 @@ module.exports = {
       });
     }
   },
-
+  emailVerification: async (req, res) => {
+    try {
+      //finding user
+      const userId = req.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({
+          message: "User not found",
+        });
+      }
+      //creating 4-digit verification code
+      const emailVerificationCode = randomatic("0", 4);
+      //saving code in database
+      user.verificationCode = emailVerificationCode;
+      user.verificationCodeExpiration = Date().now + 900000;
+      await user.save();
+      //sending verification code inside email
+      transporter.sendMail(
+        {
+          to: user.email,
+          from: "hamza.prolink@gmail.com",
+          subject: "Email Verification",
+          html: `
+    <p>Have you requested for Email Verification ?</p>
+    <p>Here is your code: ${emailVerificationCode} </p>
+    <p>Remember it is valid for 15 minutes only!</p>
+`,
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+      res.status(201).json({
+        message: "Verification Code has been sent to Email!",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
   signUp: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -159,53 +199,12 @@ module.exports = {
 
       //sending email for verificaion
       req.userId = result._id.toString();
-      this.emailVerification(req, res);
+      await emailVerification(req, res);
 
       // Returning success message
       res.status(201).json({
         message: "User created successfully, please verify your Email!",
         userDetails: result,
-      });
-    } catch (error) {
-      res.status(400).json({
-        message: error.message,
-      });
-    }
-  },
-  emailVerification: async (req, res) => {
-    try {
-      //finding user
-      const userId = req.userId;
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(401).json({
-          message: "User not found",
-        });
-      }
-      //creating 4-digit verification code
-      const emailVerificationCode = randomatic("0", 4);
-      //saving code in database
-      user.verificationCode = emailVerificationCode;
-      user.verificationCodeExpiration = Date().now + 900000;
-      await user.save();
-      //sending verification code inside email
-      transporter.sendMail(
-        {
-          to: user.email,
-          from: "hamza.prolink@gmail.com",
-          subject: "Email Verification",
-          html: `
-    <p>Have you requested for Email Verification ?</p>
-    <p>Here is your code: ${emailVerificationCode} </p>
-    <p>Remember it is valid for 15 minutes only!</p>
-`,
-        },
-        (err) => {
-          console.log(err);
-        }
-      );
-      res.status(201).json({
-        message: "Verification Code has been sent to Email!",
       });
     } catch (error) {
       res.status(400).json({
@@ -893,3 +892,5 @@ module.exports = {
     }
   },
 };
+
+module.exports = controllers;
