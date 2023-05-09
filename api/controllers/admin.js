@@ -6,8 +6,7 @@ const Scholarship = require("../models/scholarship");
 const User = require("../models/user");
 const { getContentType } = require("../../util/contentType");
 const path = require("path");
-const fs = require("@cyclic.sh/s3fs");
-// const fs = require("fs");
+const fs = require("fs");
 const { createReadStream } = require("fs");
 const { default: mongoose } = require("mongoose");
 

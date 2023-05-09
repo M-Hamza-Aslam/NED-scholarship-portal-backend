@@ -1,7 +1,6 @@
 const { validationResult } = require("express-validator");
 const path = require("path");
-const fs = require("@cyclic.sh/s3fs");
-// const fs = require("fs");
+const fs = require("fs");
 const { createReadStream } = require("fs");
 
 const bcrypt = require("bcrypt");
