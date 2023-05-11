@@ -117,6 +117,17 @@ module.exports = {
       if (!userDetails) {
         return res.status(404).json({ message: "Admin not found" });
       }
+
+      const token = jwt.sign(
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
+        process.env.JWT_SecretKey,
+        { expiresIn: "1h" }
+      );
+
       const userData = {
         email: userDetails.email,
         firstName: userDetails.firstName,
@@ -128,6 +139,7 @@ module.exports = {
         message: "admin Credentials fetched successfully",
         userDetails: userData,
         userId: userDetails._id.toString(),
+        token: token,
       });
     } catch (error) {
       console.log(error);
