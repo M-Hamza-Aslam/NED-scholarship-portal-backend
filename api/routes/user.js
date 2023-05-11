@@ -4,6 +4,7 @@ const {
   login,
   signUp,
   emailVerification,
+  verifyCode,
   forgotPassword,
   resetPassword,
   getLoginData,
@@ -48,6 +49,8 @@ router.post("/login", validateLogin, login);
 router.post("/signup", validateSignUp, signUp);
 
 router.get("/emailVerification", authenticateToken, emailVerification);
+
+router.post("/verifyCode", authenticateToken, verifyCode);
 
 router.post("/forgot-password", validateForgotPassword, forgotPassword);
 

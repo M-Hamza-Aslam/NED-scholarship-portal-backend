@@ -5,6 +5,7 @@ const { createReadStream } = require("fs");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const randomatic = require("randomatic");
 const crypto = require("crypto");
 const { getContentType } = require("../../util/contentType");
 const User = require("../models/user");
@@ -20,7 +21,7 @@ const transporter = nodemailer.createTransport(
   })
 );
 
-const controllers = {
+module.exports = {
   getContactFormData: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -100,6 +101,7 @@ const controllers = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
         profileImg: userDetails.profileImg,
+        isVerified: userDetails.isVerified,
       };
 
       res.status(200).json({
@@ -111,47 +113,6 @@ const controllers = {
     } catch (error) {
       res.status(500).json({
         message: "Internal server error",
-      });
-    }
-  },
-  emailVerification: async (req, res) => {
-    try {
-      //finding user
-      const userId = req.userId;
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(401).json({
-          message: "User not found",
-        });
-      }
-      //creating 4-digit verification code
-      const emailVerificationCode = randomatic("0", 4);
-      //saving code in database
-      user.verificationCode = emailVerificationCode;
-      user.verificationCodeExpiration = Date().now + 900000;
-      await user.save();
-      //sending verification code inside email
-      transporter.sendMail(
-        {
-          to: user.email,
-          from: "hamza.prolink@gmail.com",
-          subject: "Email Verification",
-          html: `
-    <p>Have you requested for Email Verification ?</p>
-    <p>Here is your code: ${emailVerificationCode} </p>
-    <p>Remember it is valid for 15 minutes only!</p>
-`,
-        },
-        (err) => {
-          console.log(err);
-        }
-      );
-      res.status(201).json({
-        message: "Verification Code has been sent to Email!",
-      });
-    } catch (error) {
-      res.status(400).json({
-        message: error.message,
       });
     }
   },
@@ -195,16 +156,35 @@ const controllers = {
         },
         dependantDetails: [],
       });
-      const result = await newUser.save();
+      const userDetails = await newUser.save();
 
-      //sending email for verificaion
-      req.userId = result._id.toString();
-      await emailVerification(req, res);
+      //creating token
+      const token = jwt.sign(
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
+        process.env.JWT_SecretKey,
+        { expiresIn: "1h" }
+      );
+
+      const userData = {
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        phoneNumber: userDetails.phoneNumber,
+        profileStatus: userDetails.profileStatus,
+        userRole: userDetails.userRole,
+        profileImg: userDetails.profileImg,
+      };
 
       // Returning success message
       res.status(201).json({
         message: "User created successfully, please verify your Email!",
-        userDetails: result,
+        userDetails: userData,
+        userId: userDetails._id.toString(),
+        token: token,
       });
     } catch (error) {
       res.status(400).json({
@@ -212,7 +192,82 @@ const controllers = {
       });
     }
   },
+  emailVerification: async (req, res) => {
+    try {
+      //finding user
+      const userId = req.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({
+          message: "User not found",
+        });
+      }
+      //creating 4-digit verification code
+      const emailVerificationCode = randomatic("0", 4);
+      //saving code in database
+      user.verificationCode = emailVerificationCode;
+      user.verificationCodeExpiration = new Date().getTime() + 900000;
+      await user.save();
+      //sending verification code inside email
+      transporter.sendMail(
+        {
+          to: user.email,
+          from: "hamza.prolink@gmail.com",
+          subject: "Email Verification",
+          html: `
+    <p>Have you requested for Email Verification ?</p>
+    <p>Here is your code: ${emailVerificationCode} </p>
+    <p>Remember it is valid for 15 minutes only!</p>
+`,
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+      res.status(201).json({
+        message: "Verification Code has been sent to Email!",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
+  verifyCode: async (req, res, next) => {
+    try {
+      const userId = req.userId;
+      const code = req.body.code;
+      //extracting user
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({
+          message: "User not found",
+        });
+      }
+      //checking code
+      if (
+        code !== user.verificationCode ||
+        new Date().getTime() >= user.verificationCodeExpiration
+      ) {
+        return res.status(401).json({
+          message: "invalid verification code",
+        });
+      }
+      //updating databse
+      user.isVerified = true;
+      user.verificationCode = undefined;
+      user.verificationCodeExpiration = undefined;
+      await user.save();
 
+      res.status(201).json({
+        message: "Your account has been verified!",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
   //For student forget password
   forgotPassword: async (req, res, next) => {
     try {
@@ -308,6 +363,7 @@ const controllers = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
         profileImg: userDetails.profileImg,
+        isVerified: userDetails.isVerified,
       };
       res.status(200).json({
         message: "User Credentials fetched successfully",
@@ -892,5 +948,3 @@ const controllers = {
     }
   },
 };
-
-module.exports = controllers;
