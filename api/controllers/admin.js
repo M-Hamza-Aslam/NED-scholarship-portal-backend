@@ -498,4 +498,42 @@ module.exports = {
       });
     }
   },
+  getMarksheet: async (req, res) => {
+    try {
+      //geting education and marksheet Name from client
+      const educationName = req.query.educationName;
+      const marksheetName = req.query.marksheetName;
+      const userId = req.query.userId;
+      //extracting user form database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education[educationName].marksheet === marksheetName) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      const filePath = path.resolve(`images/marksheets/${marksheetName}`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
 };

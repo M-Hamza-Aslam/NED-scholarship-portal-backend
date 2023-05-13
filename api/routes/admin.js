@@ -13,6 +13,7 @@ const {
   updateScholarshipStatus,
   updateScholarship,
   deleteScholarship,
+  getMarksheet,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -105,5 +106,7 @@ router.post(
   authenticateToken,
   updateScholarshipStatus
 );
+
+router.get("/marksheet", authenticateToken, getMarksheet);
 
 module.exports = router;

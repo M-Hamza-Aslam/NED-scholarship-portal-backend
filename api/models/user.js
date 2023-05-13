@@ -44,9 +44,17 @@ const userSchema = new Schema({
     required: true,
   },
   education: {
-    educationalDetails: {
-      type: Array,
-      required: true,
+    matric: {
+      type: Object,
+      default: {},
+    },
+    intermediate: {
+      type: Object,
+      default: {},
+    },
+    bachelor: {
+      type: Object,
+      default: {},
     },
     documents: {
       type: Array,

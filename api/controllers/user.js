@@ -13,6 +13,7 @@ const Scholarship = require("../models/scholarship");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const scholarship = require("./scholarship");
+const { object } = require("webidl-conversions");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -151,7 +152,9 @@ module.exports = {
         personalInfo: { isInitial: true },
         familyDetails: { isInitial: true },
         education: {
-          educationalDetails: [],
+          matric: {},
+          intermediate: {},
+          bachelor: {},
           documents: [],
         },
         dependantDetails: [],
@@ -187,6 +190,7 @@ module.exports = {
         token: token,
       });
     } catch (error) {
+      console.log(error);
       res.status(400).json({
         message: error.message,
       });
@@ -228,6 +232,7 @@ module.exports = {
         message: "Verification Code has been sent to Email!",
       });
     } catch (error) {
+      console.log(error);
       res.status(400).json({
         message: error.message,
       });
@@ -471,26 +476,33 @@ module.exports = {
         console.log(errors.array());
         return res.status(422).json({ errors: errors.array() });
       }
-      const { educationData, index } = req.body;
+      const { educationData, educationName } = req.body;
 
       const user = await User.findById(req.userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (user.education.educationalDetails.length === 0) {
-        user.education.educationalDetails = [educationData];
-        user.profileStatus = user.profileStatus + 15;
-      } else if (index === -1) {
-        user.education.educationalDetails.unshift(educationData);
+      if (Object.keys(user.education[educationName]).length === 0) {
+        user.education[educationName] = educationData;
+        user.profileStatus = user.profileStatus + 10;
       } else {
-        user.education.educationalDetails[index] = educationData;
+        //deleting previous marksheet
+        fs.unlink(
+          `images/marksheets/${user.education[educationName].marksheet}`,
+          function (err) {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log("Marksheet deleted successfully");
+            }
+          }
+        );
+        user.education[educationName] = educationData;
       }
+      user.education[educationName].marksheet = "";
       const updatedUser = await user.save();
-      const education = {
-        hasFetched: true,
-        ...updatedUser.education,
-      };
+      const education = updatedUser.education;
       res.status(201).json({
         message: "educational details updated",
         updatedUserData: {
@@ -522,7 +534,7 @@ module.exports = {
       //update database
       if (user.dependantDetails.length === 0) {
         user.dependantDetails = [dependantData];
-        user.profileStatus = user.profileStatus + 25;
+        user.profileStatus = user.profileStatus + 20;
       } else if (index === -1) {
         user.dependantDetails.unshift(dependantData);
       } else {
@@ -908,6 +920,93 @@ module.exports = {
         },
       });
     } catch (error) {
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  uploadMarksheet: async (req, res) => {
+    try {
+      const marksheet = req.file;
+      const userId = req.userId;
+      const educationName = req.query.educationName;
+      if (!marksheet) {
+        return res.status(415).json({
+          message: "Invalid File",
+        });
+      }
+      //finding user from database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //deleting previous marksheet
+      if (user.education[educationName].marksheet.length > 0) {
+        fs.unlink(`images/marksheets/${marksheet}`, function (err) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("Marksheet deleted successfully");
+          }
+        });
+      }
+      //updating database
+      user.education[educationName] = {
+        ...user.education[educationName],
+        marksheet: marksheet.filename,
+      };
+      const updatedUser = await user.save();
+      //sending response
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
+      res.status(201).json({
+        message: `${educationName} details saved successfully!`,
+        updatedUserData: {
+          education,
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getMarksheet: async (req, res) => {
+    try {
+      //geting education and marksheet Name from client
+      const educationName = req.query.educationName;
+      const marksheetName = req.query.marksheetName;
+      //extracting user form database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education[educationName].marksheet === marksheetName) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      const filePath = path.resolve(`images/marksheets/${marksheetName}`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
       res.status(500).json({
         message: "Internal server error",
       });

@@ -425,6 +425,63 @@ module.exports = {
     }),
   ],
 
+  validateBachelorDetails: [
+    body("educationData.class").custom((value, { req }) => {
+      if (!value) {
+        return Promise.reject("Class is required");
+      }
+      const regex = /^[0-9]{4}$/;
+      if (!regex.test(value)) {
+        return Promise.reject("Class should be a 4-digit number");
+      }
+      return true;
+    }),
+    body("educationData.seatNo").custom((value, { req }) => {
+      if (!value) {
+        return Promise.reject("Seat Number is required");
+      }
+      const regex = /^[A-Z]{2}-\d{5}$/;
+      if (!regex.test(value)) {
+        return Promise.reject("Seat Number should be of pattern CT-20061");
+      }
+      return true;
+    }),
+    body(
+      "educationData.semester",
+      "Please Provide a valid semester value"
+    ).notEmpty(),
+    body("educationData.totalCGPA").custom((value, { req }) => {
+      if (!value) {
+        return Promise.reject("Total CGPA is required");
+      }
+      const regex = /^\d\.\d{1}$/;
+      if (!regex.test(value)) {
+        return Promise.reject("Total CGPA should be of pattern 4.0");
+      }
+      return true;
+    }),
+    body("educationData.obtainedCGPA").custom((value, { req }) => {
+      if (!value) {
+        return Promise.reject("Obtained CGPA is required");
+      }
+      const regex = /^\d\.\d{1}$/;
+      if (!regex.test(value)) {
+        return Promise.reject("Obtained CGPA should be of pattern 3.0");
+      }
+      return true;
+    }),
+    body("educationData.meritPosition").custom((value, { req }) => {
+      if (!value) {
+        return Promise.reject("Merit Position is required");
+      }
+      const regex = /^[A-Za-z]+$/;
+      if (!regex.test(value)) {
+        return Promise.reject("Merit Position should contain only alphabets");
+      }
+      return true;
+    }),
+  ],
+
   // Validation middleware for Dependant Details
   validateDependantDetails: [
     body("dependantData.name").custom((value) => {
