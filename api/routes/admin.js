@@ -13,6 +13,7 @@ const {
   updateScholarshipStatus,
   updateScholarship,
   deleteScholarship,
+  generateReport,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -105,5 +106,8 @@ router.post(
   authenticateToken,
   updateScholarshipStatus
 );
+
+// Generate scholarship report
+router.get("/scholarship-report", authenticateToken, generateReport);
 
 module.exports = router;

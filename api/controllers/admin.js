@@ -9,6 +9,7 @@ const path = require("path");
 const fs = require("fs");
 const { createReadStream } = require("fs");
 const { default: mongoose } = require("mongoose");
+const PDFDocument = require('pdfkit');
 
 module.exports = {
   //For admin login
@@ -484,6 +485,105 @@ module.exports = {
         error: err.message,
         message: "Internal server error",
       });
+    }
+  },
+  generateReport: async (req, res) => {
+    try {
+      const scholarshipId = req.body.id;
+      console.log("scholarshipId:", scholarshipId)
+      const scholarship = await Scholarship.findById(scholarshipId);
+      console.log("scholarship:", scholarship);
+
+      if (!scholarship) {
+        return res.status(404).send('Scholarship not found');
+      }
+
+      const doc = new PDFDocument();
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="scholarship_report.pdf"');
+
+      doc.pipe(res);
+
+      doc.fontSize(16).text('Scholarship Report', { align: 'center' });
+      doc.moveDown();
+
+      doc.fontSize(14).text(`Scholarship Name: ${scholarship.title}`, { underline: true });
+      doc.moveDown();
+
+      // Add Applied Users
+      doc.moveDown();
+      doc.fontSize(16).text('Awaiting Users:', { underline: true });
+
+      const awaitingUsers = await User.find({
+        appliedScholarship: {
+          $elemMatch: {
+            scholarshipId: scholarshipId,
+            status: 'awaiting',
+          },
+        },
+      });
+      console.log("awaitingUsers", awaitingUsers);
+      if (awaitingUsers.length === 0) {
+        doc.moveDown().fontSize(10).text('No awaiting users found');
+      } else {
+        for (let i = 0; i < awaitingUsers.length; i++) {
+          const user = awaitingUsers[i];
+          doc.moveDown().fontSize(12).text(`${i + 1}. Name: ${user.firstName} ${user.lastName}`);
+          doc.fontSize(10).text(`Email: ${user.email}`);
+          doc.fontSize(10).text(`Contact Number: ${user.phoneNumber}`);
+        }
+      }
+      // Add Approved Users
+      doc.moveDown();
+      doc.fontSize(16).text('Approved Users:', { underline: true });
+
+      const approvedUsers = await User.find({
+        appliedScholarship: {
+          $elemMatch: {
+            scholarshipId: scholarshipId,
+            status: 'approved',
+          },
+        },
+      });
+      console.log("approvedUsers", approvedUsers)
+      if (approvedUsers.length === 0) {
+        doc.moveDown().fontSize(10).text('No approved users found');
+      } else {
+        for (let i = 0; i < approvedUsers.length; i++) {
+          const user = approvedUsers[i];
+          doc.moveDown().fontSize(12).text(`${i + 1}. Name: ${user.firstName} ${user.lastName}`);
+          doc.fontSize(10).text(`Email: ${user.email}`);
+          doc.fontSize(10).text(`Contact Number: ${user.phoneNumber}`);
+        }
+      }
+      // Add Declined Users
+      doc.moveDown();
+      doc.fontSize(16).text('Declined Users:', { underline: true });
+
+      const declinedUsers = await User.find({
+        appliedScholarship: {
+          $elemMatch: {
+            scholarshipId: scholarshipId,
+            status: 'declined',
+          },
+        },
+      });
+      console.log("declinedUsers", declinedUsers)
+      if (declinedUsers.length === 0) {
+        doc.moveDown().fontSize(10).text('No declined users found');
+      } else {
+        for (let i = 0; i < declinedUsers.length; i++) {
+          const user = declinedUsers[i];
+          doc.moveDown().fontSize(12).text(`${i + 1}. Name: ${user.firstName} ${user.lastName}`);
+          doc.fontSize(10).text(`Email: ${user.email}`);
+          doc.fontSize(10).text(`Contact Number: ${user.phoneNumber}`);
+        }
+      }
+      doc.end();
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
     }
   },
 };
