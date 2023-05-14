@@ -456,32 +456,31 @@ module.exports = {
         });
       }
 
-      //check if updated status is approved and user has already approved scholarship
-      user.appliedScholarship.forEach((scholarship) => {
-        if (scholarship.status === "approved") {
+      // Check if updated status is "approved" and user has already approved scholarship
+      for (const scholarship of user.appliedScholarship) {
+        if (scholarship.status === "approved" && scholarship.scholarshipId.toString() !== scholarshipId) {
           return res.status(403).json({
-            message: "User already has approved scholarship",
+            message: "User already has an approved scholarship",
           });
         }
-      });
+      }
 
       // Find scholarship and change status
-
-      user.appliedScholarship.forEach((scholarship) => {
+      for (const scholarship of user.appliedScholarship) {
         if (scholarship.scholarshipId.toString() === scholarshipId) {
           scholarship.status = updatedStatus;
         }
-      });
+      }
 
       await user.save();
 
-      res.status(201).json({
-        User: user,
+      return res.status(201).json({
+        user: user,
         message: "Scholarship status updated successfully",
       });
     } catch (err) {
       console.error(err);
-      res.status(500).json({
+      return res.status(500).json({
         error: err.message,
         message: "Internal server error",
       });
