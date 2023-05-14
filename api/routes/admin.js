@@ -14,6 +14,7 @@ const {
   updateScholarship,
   deleteScholarship,
   generateReport,
+  appliedScholarshipReport,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -109,5 +110,8 @@ router.post(
 
 // Generate scholarship report
 router.get("/scholarship-report", authenticateToken, generateReport);
+
+// Generate applied scholarship report
+router.get("/applied-scholarship-report/:userId", appliedScholarshipReport);
 
 module.exports = router;
