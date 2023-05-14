@@ -112,6 +112,6 @@ router.post(
 router.get("/scholarship-report", authenticateToken, generateReport);
 
 // Generate applied scholarship report
-router.get("/applied-scholarship-report/:userId", appliedScholarshipReport);
+router.get("/applied-scholarship-report/:userId", authenticateToken, appliedScholarshipReport);
 
 module.exports = router;
