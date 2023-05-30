@@ -5,6 +5,7 @@ const { createReadStream } = require("fs");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const randomatic = require("randomatic");
 const crypto = require("crypto");
 const { getContentType } = require("../../util/contentType");
 const User = require("../models/user");
@@ -12,6 +13,7 @@ const Scholarship = require("../models/scholarship");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const scholarship = require("./scholarship");
+const { object } = require("webidl-conversions");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
@@ -100,6 +102,7 @@ module.exports = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
         profileImg: userDetails.profileImg,
+        isVerified: userDetails.isVerified,
       };
 
       res.status(200).json({
@@ -114,7 +117,6 @@ module.exports = {
       });
     }
   },
-
   signUp: async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -142,6 +144,7 @@ module.exports = {
         lastName,
         email,
         password: hashedPassword,
+        isVerified: false,
         phoneNumber,
         userRole: "student",
         profileStatus: 0,
@@ -149,17 +152,120 @@ module.exports = {
         personalInfo: { isInitial: true },
         familyDetails: { isInitial: true },
         education: {
-          educationalDetails: [],
+          matric: {},
+          intermediate: {},
+          bachelor: {},
           documents: [],
         },
         dependantDetails: [],
       });
-      const result = await newUser.save();
+      const userDetails = await newUser.save();
+
+      //creating token
+      const token = jwt.sign(
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
+        process.env.JWT_SecretKey,
+        { expiresIn: "1h" }
+      );
+
+      const userData = {
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        phoneNumber: userDetails.phoneNumber,
+        profileStatus: userDetails.profileStatus,
+        userRole: userDetails.userRole,
+        profileImg: userDetails.profileImg,
+      };
 
       // Returning success message
       res.status(201).json({
-        message: "User created successfully",
-        userDetails: result,
+        message: "User created successfully, please verify your Email!",
+        userDetails: userData,
+        userId: userDetails._id.toString(),
+        token: token,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
+  emailVerification: async (req, res) => {
+    try {
+      //finding user
+      const userId = req.userId;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({
+          message: "User not found",
+        });
+      }
+      //creating 4-digit verification code
+      const emailVerificationCode = randomatic("0", 4);
+      //saving code in database
+      user.verificationCode = emailVerificationCode;
+      user.verificationCodeExpiration = new Date().getTime() + 900000;
+      await user.save();
+      //sending verification code inside email
+      transporter.sendMail(
+        {
+          to: user.email,
+          from: "hamza.prolink@gmail.com",
+          subject: "Email Verification",
+          html: `
+    <p>Have you requested for Email Verification ?</p>
+    <p>Here is your code: ${emailVerificationCode} </p>
+    <p>Remember it is valid for 15 minutes only!</p>
+`,
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+      res.status(201).json({
+        message: "Verification Code has been sent to Email!",
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
+  verifyCode: async (req, res, next) => {
+    try {
+      const userId = req.userId;
+      const code = req.body.code;
+      //extracting user
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({
+          message: "User not found",
+        });
+      }
+      //checking code
+      if (
+        code !== user.verificationCode ||
+        new Date().getTime() >= user.verificationCodeExpiration
+      ) {
+        return res.status(401).json({
+          message: "invalid verification code",
+        });
+      }
+      //updating databse
+      user.isVerified = true;
+      user.verificationCode = undefined;
+      user.verificationCodeExpiration = undefined;
+      await user.save();
+
+      res.status(201).json({
+        message: "Your account has been verified!",
       });
     } catch (error) {
       res.status(400).json({
@@ -167,7 +273,6 @@ module.exports = {
       });
     }
   },
-
   //For student forget password
   forgotPassword: async (req, res, next) => {
     try {
@@ -255,6 +360,17 @@ module.exports = {
       if (!userDetails) {
         return res.status(404).json({ message: "User not found" });
       }
+
+      const token = jwt.sign(
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
+        process.env.JWT_SecretKey,
+        { expiresIn: "1h" }
+      );
+
       const userData = {
         email: userDetails.email,
         firstName: userDetails.firstName,
@@ -263,11 +379,13 @@ module.exports = {
         profileStatus: userDetails.profileStatus,
         userRole: userDetails.userRole,
         profileImg: userDetails.profileImg,
+        isVerified: userDetails.isVerified,
       };
       res.status(200).json({
         message: "User Credentials fetched successfully",
         userDetails: userData,
         userId: userDetails._id.toString(),
+        token: token,
       });
     } catch (error) {
       console.log(error);
@@ -358,26 +476,33 @@ module.exports = {
         console.log(errors.array());
         return res.status(422).json({ errors: errors.array() });
       }
-      const { educationData, index } = req.body;
+      const { educationData, educationName } = req.body;
 
       const user = await User.findById(req.userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       //update database
-      if (user.education.educationalDetails.length === 0) {
-        user.education.educationalDetails = [educationData];
-        user.profileStatus = user.profileStatus + 15;
-      } else if (index === -1) {
-        user.education.educationalDetails.unshift(educationData);
+      if (Object.keys(user.education[educationName]).length === 0) {
+        user.education[educationName] = educationData;
+        user.profileStatus = user.profileStatus + 10;
       } else {
-        user.education.educationalDetails[index] = educationData;
+        //deleting previous marksheet
+        fs.unlink(
+          `images/marksheets/${user.education[educationName].marksheet}`,
+          function (err) {
+            if (err) {
+              console.error(err);
+            } else {
+              console.log("Marksheet deleted successfully");
+            }
+          }
+        );
+        user.education[educationName] = educationData;
       }
+      user.education[educationName].marksheet = "";
       const updatedUser = await user.save();
-      const education = {
-        hasFetched: true,
-        ...updatedUser.education,
-      };
+      const education = updatedUser.education;
       res.status(201).json({
         message: "educational details updated",
         updatedUserData: {
@@ -409,7 +534,7 @@ module.exports = {
       //update database
       if (user.dependantDetails.length === 0) {
         user.dependantDetails = [dependantData];
-        user.profileStatus = user.profileStatus + 25;
+        user.profileStatus = user.profileStatus + 20;
       } else if (index === -1) {
         user.dependantDetails.unshift(dependantData);
       } else {
@@ -795,6 +920,93 @@ module.exports = {
         },
       });
     } catch (error) {
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  uploadMarksheet: async (req, res) => {
+    try {
+      const marksheet = req.file;
+      const userId = req.userId;
+      const educationName = req.query.educationName;
+      if (!marksheet) {
+        return res.status(415).json({
+          message: "Invalid File",
+        });
+      }
+      //finding user from database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //deleting previous marksheet
+      if (user.education[educationName].marksheet.length > 0) {
+        fs.unlink(`images/marksheets/${marksheet}`, function (err) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("Marksheet deleted successfully");
+          }
+        });
+      }
+      //updating database
+      user.education[educationName] = {
+        ...user.education[educationName],
+        marksheet: marksheet.filename,
+      };
+      const updatedUser = await user.save();
+      //sending response
+      const education = {
+        hasFetched: true,
+        ...updatedUser.education,
+      };
+      res.status(201).json({
+        message: `${educationName} details saved successfully!`,
+        updatedUserData: {
+          education,
+          profileStatus: updatedUser.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getMarksheet: async (req, res) => {
+    try {
+      //geting education and marksheet Name from client
+      const educationName = req.query.educationName;
+      const marksheetName = req.query.marksheetName;
+      //extracting user form database
+      const user = await User.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education[educationName].marksheet === marksheetName) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      const filePath = path.resolve(`images/marksheets/${marksheetName}`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
       res.status(500).json({
         message: "Internal server error",
       });

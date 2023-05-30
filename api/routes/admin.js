@@ -13,6 +13,7 @@ const {
   updateScholarshipStatus,
   updateScholarship,
   deleteScholarship,
+  getMarksheet,
   generateReport,
   appliedScholarshipReport,
 } = require("../controllers/admin");
@@ -108,6 +109,7 @@ router.post(
   updateScholarshipStatus
 );
 
+router.get("/marksheet", authenticateToken, getMarksheet);
 // Generate scholarship report
 router.get("/scholarship-report", authenticateToken, generateReport);
 
