@@ -42,7 +42,7 @@ const {
   validateBachelorDetails,
   validateEducationDetails,
   validateDependantDetails,
-} = require("../../util/inputValidation");
+} = require("../../util/userInputValidation");
 
 //Routes
 router.post("/send-contact-form", validateContactForm, getContactFormData);

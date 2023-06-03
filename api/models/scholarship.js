@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const scholarshipSchema = new Schema({
+  type: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true,
@@ -21,6 +25,22 @@ const scholarshipSchema = new Schema({
   status: {
     type: String,
     required: true,
+  },
+  matricPercentage: {
+    type: String,
+    default: "",
+  },
+  intermediatePercentage: {
+    type: String,
+    default: "",
+  },
+  bachelorCGPA: {
+    type: String,
+    default: "",
+  },
+  familyIncome: {
+    type: String,
+    default: "",
   },
   description: {
     type: String,

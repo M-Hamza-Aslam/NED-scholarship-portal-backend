@@ -149,48 +149,42 @@ module.exports = {
       });
     }
   },
-  createScholarship: async (req, res) => {
+  createMeritScholarship: async (req, res) => {
     try {
       //extracting Admin just for verification
       const userDetails = await Admin.findById(req.userId);
       if (!userDetails) {
         return res.status(404).json({ message: "Admin not found" });
       }
-      //extracting scholarship details from req
-      const {
-        title,
-        closeDate,
-        description,
-        eligibilityCriteria,
-        instructions,
-      } = req.body;
       //creating a new scholarship
       const newScholarship = new Scholarship({
-        title,
+        ...req.body,
         image: "",
         issueDate: Date.now(),
-        closeDate,
         status: "active",
-        description,
-        eligibilityCriteria,
-        instructions,
       });
       const scholarshipDetails = await newScholarship.save();
 
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        matricPercentage: scholarshipDetails.matricPercentage,
+        intermediatePercentage: scholarshipDetails.intermediatePercentage,
+        bachelorCGPA: scholarshipDetails.bachelorCGPA,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+      };
       // Returning success message
       res.status(201).json({
         message: "Scholarship created successfully",
-        scholarshipDetails: {
-          _id: scholarshipDetails._id.toString(),
-          title: scholarshipDetails.title,
-          issueDate: scholarshipDetails.issueDate,
-          closeDate: scholarshipDetails.closeDate,
-          image: scholarshipDetails.image,
-          status: scholarshipDetails.status,
-          description: scholarshipDetails.description,
-          eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
-          instructions: scholarshipDetails.instructions,
-        },
+        scholarshipDetails: responseData,
       });
     } catch (error) {
       console.log(error);
@@ -199,10 +193,54 @@ module.exports = {
       });
     }
   },
-  updateScholarship: async (req, res) => {
+  createNeedScholarship: async (req, res) => {
+    try {
+      //extracting Admin just for verification
+      const userDetails = await Admin.findById(req.userId);
+      if (!userDetails) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      //creating a new scholarship
+      const newScholarship = new Scholarship({
+        ...req.body,
+        image: "",
+        issueDate: Date.now(),
+        status: "active",
+      });
+      const scholarshipDetails = await newScholarship.save();
+
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        familyIncome: scholarshipDetails.familyIncome,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+      };
+
+      // Returning success message
+      res.status(201).json({
+        message: "Scholarship created successfully",
+        scholarshipDetails: responseData,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  updateMeritScholarship: async (req, res) => {
     try {
       //getting data
       const scholarshipId = req.query.scholarshipId;
+      const scholarshipType = req.body.scholarshipData;
       const {
         title,
         closeDate,
@@ -221,6 +259,9 @@ module.exports = {
       scholarship.description = description;
       scholarship.eligibilityCriteria = eligibilityCriteria;
       scholarship.instructions = instructions;
+      scholarship.matricPercentage = req.body.matricPercentage;
+      scholarship.intermediatePercentage = req.body.intermediatePercentage;
+      scholarship.bachelorCGPA = req.body.bachelorCGPA;
       //deleting image from file system
       fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
         if (err) {
@@ -231,20 +272,26 @@ module.exports = {
         }
       });
       const scholarshipDetails = await scholarship.save();
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        matricPercentage: scholarshipDetails.matricPercentage,
+        intermediatePercentage: scholarshipDetails.intermediatePercentage,
+        bachelorCGPA: scholarshipDetails.bachelorCGPA,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+      };
       // Returning success message
       res.status(201).json({
         message: "Scholarship updated successfully",
-        scholarshipDetails: {
-          _id: scholarshipDetails._id.toString(),
-          title: scholarshipDetails.title,
-          issueDate: scholarshipDetails.issueDate,
-          closeDate: scholarshipDetails.closeDate,
-          image: scholarshipDetails.image,
-          status: scholarshipDetails.status,
-          description: scholarshipDetails.description,
-          eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
-          instructions: scholarshipDetails.instructions,
-        },
+        scholarshipDetails: responseData,
       });
     } catch (error) {
       console.log(error);
@@ -253,6 +300,67 @@ module.exports = {
       });
     }
   },
+  updateNeedScholarship: async (req, res) => {
+    try {
+      //getting data
+      const scholarshipId = req.query.scholarshipId;
+      const scholarshipType = req.body.scholarshipData;
+      const {
+        title,
+        closeDate,
+        description,
+        eligibilityCriteria,
+        instructions,
+      } = req.body;
+      //extracting scholarship
+      const scholarship = await Scholarship.findById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ message: "Scholarship not found" });
+      }
+      //updating scholarship
+      scholarship.title = title;
+      scholarship.closeDate = closeDate;
+      scholarship.description = description;
+      scholarship.eligibilityCriteria = eligibilityCriteria;
+      scholarship.instructions = instructions;
+      scholarship.familyIncome = req.body.familyIncome;
+      //deleting image from file system
+      fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log("Scholarship Img deleted successfully");
+          scholarship.image = "";
+        }
+      });
+      const scholarshipDetails = await scholarship.save();
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        familyIncome: scholarshipDetails.familyIncome,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+      };
+      // Returning success message
+      res.status(201).json({
+        message: "Scholarship updated successfully",
+        scholarshipDetails: responseData,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+
   deleteScholarship: async (req, res) => {
     try {
       const scholarshipId = req.query.scholarshipId;
