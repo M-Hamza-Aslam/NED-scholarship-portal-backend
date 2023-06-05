@@ -33,6 +33,10 @@ app.use("/admin", adminRoutes);
 app.use(userRoutes);
 app.use(scholarshipRoutes);
 
+// Call the scheduler function to start the task
+const runScheduler = require("./util/cornSchedulars");
+runScheduler();
+
 // setting mongoose connection and starting server
 mongoose.set("strictQuery", false);
 mongoose

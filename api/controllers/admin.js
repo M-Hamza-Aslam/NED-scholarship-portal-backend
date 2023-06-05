@@ -204,7 +204,7 @@ module.exports = {
       const newScholarship = new Scholarship({
         ...req.body,
         image: "",
-        issueDate: Date.now(),
+        issueDate: new Date(),
         status: "active",
       });
       const scholarshipDetails = await newScholarship.save();
