@@ -760,4 +760,68 @@ module.exports = {
       res.status(500).send("Server error");
     }
   },
+  appliedScholarshipReport: async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      console.log("UserId123:", userId);
+
+      const user = await User.findById(userId);
+      console.log("user:", user);
+
+      if (!user) {
+        return res.status(404).send('User not found');
+      }
+
+      const doc = new PDFDocument();
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${user.firstName} ${user.lastName}_applied_scholarship_report.pdf"`);
+
+      doc.pipe(res);
+
+      doc.fontSize(16).text('Applied Scholarship Report', { align: 'center' });
+      doc.moveDown();
+
+      doc.fontSize(12).text(`Student Name: ${user.firstName} ${user.lastName}`);
+      doc.fontSize(10).text(`Roll Number: ${user.personalInfo.rollNo}`);
+      doc.fontSize(10).text(`Cloud Id: ${user.email}`);
+      doc.fontSize(10).text(`Discipline: ${user.personalInfo.discipline}`);
+      doc.fontSize(10).text(`Batch: ${user.personalInfo.batch}`);
+      doc.fontSize(10).text(`Contact Number: ${user.phoneNumber}`);
+      doc.moveDown();
+
+      // Add Applied Scholarships
+      doc.moveDown();
+      doc.fontSize(16).text('Applied Scholarships:', { underline: true });
+
+      const userAppliedScholarship = user.appliedScholarship;
+      console.log("userAppliedScholarship", userAppliedScholarship);
+
+      if (userAppliedScholarship.length === 0) {
+        doc.moveDown().fontSize(10).text('No applied scholarships found...');
+      } else {
+        for (let i = 0; i < userAppliedScholarship.length; i++) {
+
+          const ScholarshipId = userAppliedScholarship[i].scholarshipId
+          const scholarshipStatus = userAppliedScholarship[i].status
+          const scholarship = await Scholarship.findById(ScholarshipId);
+
+          // Formating dates
+          const issueDate = scholarship.issueDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          const closeDate = scholarship.closeDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          doc.moveDown().fontSize(12).text(`${i + 1}. Scholarship Name: ${scholarship.title}`);
+          doc.fontSize(10).text(`Issue Date: ${issueDate}`);
+          doc.fontSize(10).text(`Close Date: ${closeDate}`);
+          doc.fontSize(10).text(`Status: ${scholarshipStatus}`);
+        }
+      }
+
+      doc.end(); // move this line to the end of the pipe chain
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    }
+  },
 };

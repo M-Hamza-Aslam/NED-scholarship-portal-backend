@@ -186,6 +186,23 @@ module.exports = {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Check if all profile information fields are completely filled
+      const { personalInfo, familyDetails, education } = user;
+      if (
+        !personalInfo ||
+        !familyDetails ||
+        !education ||
+        !education.matric ||
+        !education.intermediate ||
+        !education.bachelor ||
+        !education.documents ||
+        education.documents.length === 0
+      ) {
+        return res.status(400).json({
+          error: "Please fill in all the required profile information before applying for a scholarship.",
+        });
+      }
+
       const hasApplied = user.appliedScholarship.some(
         (scholarship) => scholarship.scholarshipId.toString() === scholarshipId
       );
@@ -201,7 +218,9 @@ module.exports = {
       );
 
       if (hasApproved) {
-        return res.json({ error: "User already has an approved scholarship" });
+        return res.json({
+          error: "User already has an approved scholarship",
+        });
       } else {
         user.appliedScholarship.push({
           scholarshipId: new mongoose.Types.ObjectId(scholarshipId),
@@ -209,7 +228,7 @@ module.exports = {
         });
         await user.save();
 
-        // Gettiing the updated applied scholarship object
+        // Getting the updated applied scholarship object
         const updatedAppliedScholarships = user.appliedScholarship.map(
           (scholarship) => {
             return {
