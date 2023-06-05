@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 app.use(userRoutes);
 app.use(scholarshipRoutes);
 app.use("/admin", adminRoutes);
-// app.use("/alumni", alumniRoutes);
+app.use("/alumni", alumniRoutes);
 
 // Setting mongoose connection and starting server
 mongoose.set("strictQuery", false);

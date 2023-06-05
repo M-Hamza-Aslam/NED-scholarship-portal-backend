@@ -27,6 +27,25 @@ const alumniSchema = new Schema({
         type: String,
         required: true,
     },
+    profileImg: {
+        type: String,
+    },
+    profileStatus: {
+        type: Number,
+        required: true,
+    },
+    personalInfo: {
+        type: Object,
+        required: true,
+    },
+    isVerified: {
+        type: Boolean,
+        required: true,
+    },
+    verificationCode: String,
+    verificationCodeExpiration: Date,
+    resetToken: String,
+    resetTokenExpiration: Date,
 });
 
 module.exports = mongoose.model("Alumni", alumniSchema);
