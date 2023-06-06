@@ -12,6 +12,7 @@ const jwt = require("jsonwebtoken");
 // const path = require("path");
 // const fs = require("fs");
 // const PDFDocument = require("pdfkit");
+const randomatic = require("randomatic");
 
 module.exports = {
   //For alumni login
