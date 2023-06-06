@@ -536,6 +536,7 @@ module.exports = {
     try {
       //getting scholarship Id from client
       const scholarshipId = req.query.scholarshipId;
+      console.log("scholarshipId", scholarshipId);
       //finding users
       let users = await User.find({
         appliedScholarship: {
@@ -544,12 +545,34 @@ module.exports = {
           },
         },
       });
+      console.log("users: ",users);
+      //Extracting Information from User
+      const education = users[0].education;
+      const matricPercentage = education.matric.percentage;
+      const intermediatePercentage = education.intermediate.percentage;
+      const cgpaPercentage = ((education.bachelor.obtainedCGPA)/4.0)*100;
+      const merit = (0.5 * cgpaPercentage) + (0.25 * matricPercentage) + (0.25 * intermediatePercentage);
+
+      const familyIncome = users[0].familyDetails.grossIncome;
+      const noOfDependents = users[0].dependantDetails.length;
+      const incomePerDependent = familyIncome / noOfDependents;
+
+
+
+
+
 
       users = users.map((user) => {
         return {
           _id: user._id.toString(),
           firstName: user.firstName,
           lastName: user.lastName,
+          merit: merit,
+          meritFormula: "CGPA(%): 50% + Intermediate(%): 25% + Matric(%): 25%",
+          matricPercentage: matricPercentage,
+          intermediatePercentage: intermediatePercentage,
+          CGPA: cgpaPercentage,
+          need: incomePerDependent,
           status: user.appliedScholarship.find(
             (s) => s.scholarshipId.toString() === scholarshipId
           ).status,

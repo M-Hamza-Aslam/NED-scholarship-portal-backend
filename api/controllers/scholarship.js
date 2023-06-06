@@ -203,25 +203,32 @@ module.exports = {
         });
       }
 
+      // Check weather user already applied in that scholarship
       const hasApplied = user.appliedScholarship.some(
         (scholarship) => scholarship.scholarshipId.toString() === scholarshipId
       );
-
       if (hasApplied) {
         return res.json({
           error: "User has already applied to this scholarship",
         });
       }
 
+      // Check if any user's scholarship has already approved
       const hasApproved = user.appliedScholarship.some(
         (scholarship) => scholarship.status === "approved"
       );
-
       if (hasApproved) {
         return res.json({
           error: "User already has an approved scholarship",
         });
-      } else {
+      }
+      
+      else {
+        //Now checking weather the user profile meeting scolarship criteria 
+        const scholarship = await Scholarship.findById(scholarshipId);
+        console.log("scholarship", scholarship);
+        console.log("user", user);
+
         user.appliedScholarship.push({
           scholarshipId: new mongoose.Types.ObjectId(scholarshipId),
           status: "awaiting",
