@@ -162,6 +162,11 @@ module.exports = {
         image: "",
         issueDate: Date.now(),
         status: "active",
+        creator: {
+          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          email: userDetails.email,
+          role: "admin",
+        },
       });
       const scholarshipDetails = await newScholarship.save();
 
@@ -181,6 +186,7 @@ module.exports = {
         eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
         instructions: scholarshipDetails.instructions,
         otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
       };
       // Returning success message
       res.status(201).json({
@@ -207,6 +213,11 @@ module.exports = {
         image: "",
         issueDate: new Date(),
         status: "active",
+        creator: {
+          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          email: userDetails.email,
+          role: "admin",
+        },
       });
       const scholarshipDetails = await newScholarship.save();
 
@@ -223,6 +234,8 @@ module.exports = {
         description: scholarshipDetails.description,
         eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
         instructions: scholarshipDetails.instructions,
+        otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
       };
 
       // Returning success message
@@ -263,6 +276,7 @@ module.exports = {
       scholarship.matricPercentage = req.body.matricPercentage;
       scholarship.intermediatePercentage = req.body.intermediatePercentage;
       scholarship.bachelorCGPA = req.body.bachelorCGPA;
+      scholarship.otherRequirements = req.body.otherRequirements;
       //deleting image from file system
       fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
         if (err) {
@@ -288,6 +302,8 @@ module.exports = {
         description: scholarshipDetails.description,
         eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
         instructions: scholarshipDetails.instructions,
+        otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
       };
       // Returning success message
       res.status(201).json({
@@ -325,6 +341,7 @@ module.exports = {
       scholarship.eligibilityCriteria = eligibilityCriteria;
       scholarship.instructions = instructions;
       scholarship.familyIncome = req.body.familyIncome;
+      scholarship.otherRequirements = req.body.otherRequirements;
       //deleting image from file system
       fs.unlink(`images/scholarshipImg/${scholarship.image}`, function (err) {
         if (err) {
@@ -348,6 +365,8 @@ module.exports = {
         description: scholarshipDetails.description,
         eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
         instructions: scholarshipDetails.instructions,
+        otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
       };
       // Returning success message
       res.status(201).json({

@@ -3,6 +3,20 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const scholarshipSchema = new Schema({
+  creator: {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      required: true,
+    },
+  },
   type: {
     type: String,
     required: true,

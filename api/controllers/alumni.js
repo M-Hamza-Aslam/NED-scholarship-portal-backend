@@ -1,16 +1,16 @@
 const Alumni = require("../models/alumni");
-// const Scholarship = require("../models/scholarship");
-// const User = require("../models/user");
+const Scholarship = require("../models/scholarship");
+const User = require("../models/user");
 
 const { validationResult } = require("express-validator");
-// const { getContentType } = require("../../util/contentType");
-// const { createReadStream } = require("fs");
+const { getContentType } = require("../../util/contentType");
+const { createReadStream } = require("fs");
 // const { default: mongoose } = require("mongoose");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-// const path = require("path");
-// const fs = require("fs");
+const path = require("path");
+const fs = require("fs");
 // const PDFDocument = require("pdfkit");
 const randomatic = require("randomatic");
 const nodemailer = require("nodemailer");
@@ -351,6 +351,297 @@ module.exports = {
     } catch (error) {
       res.status(400).json({
         message: error.message,
+      });
+    }
+  },
+  getCreatedScholarships: async (req, res) => {
+    try {
+      const userId = req.userId;
+
+      const alumni = await Alumni.findById(userId).populate(
+        "createdScholarships.scholarshipId"
+      );
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+
+      const createdScholarships = alumni.createdScholarships.map(
+        (scholarship) => {
+          const issueDate = new Date(scholarship.scholarshipId.issueDate);
+          const closeDate = new Date(scholarship.scholarshipId.closeDate);
+          return {
+            status: scholarship.status,
+            scholarshipDetails: {
+              _id: scholarship.scholarshipId._id,
+              title: scholarship.scholarshipId.title,
+              image: scholarship.scholarshipId.image,
+              issueDate: {
+                month: issueDate.toLocaleString("default", { month: "long" }),
+                day: issueDate.getDate(),
+                year: issueDate.getFullYear(),
+              },
+              closeDate: {
+                month: closeDate.toLocaleString("default", { month: "long" }),
+                day: closeDate.getDate(),
+                year: closeDate.getFullYear(),
+              },
+              status: scholarship.scholarshipId.status,
+              description: scholarship.scholarshipId.description,
+              eligibilityCriteria:
+                scholarship.scholarshipId.eligibilityCriteria,
+              instructions: scholarship.scholarshipId.instructions,
+              otherRequirements: scholarship.scholarshipId.otherRequirements,
+            },
+          };
+        }
+      );
+
+      res.json(createdScholarships);
+    } catch (error) {
+      res.status(500).json({
+        message: "Something went wrong with the api",
+        error: error.message,
+      });
+    }
+  },
+  appliedUsersList: async (req, res) => {
+    try {
+      //getting scholarship Id from client
+      const scholarshipId = req.query.scholarshipId;
+      //finding users
+      let users = await User.find({
+        appliedScholarship: {
+          $elemMatch: {
+            scholarshipId: scholarshipId,
+          },
+        },
+      });
+
+      users = users.map((user) => {
+        return {
+          _id: user._id.toString(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          status: user.appliedScholarship.find(
+            (s) => s.scholarshipId.toString() === scholarshipId
+          ).status,
+        };
+      });
+
+      res.status(200).json({ users });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getUserData: async (req, res) => {
+    try {
+      //getting userId from client
+      const userId = req.query.userId;
+      //extracting user
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //structuring userDetails;
+      const userDetails = {
+        userId: user._id.toString(),
+        sideBar: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          profileStatus: user.profileStatus,
+          profileImg: user.profileImg,
+        },
+        personalInfo: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+          personalInfo: user.personalInfo,
+        },
+        familyDetails: user.familyDetails,
+        education: user.education,
+        dependantDetails: user.dependantDetails,
+      };
+      //sending user data to front end
+      res.status(200).json({
+        message: "User details has been fetched",
+        userDetails,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendUserProfileImg: async (req, res) => {
+    try {
+      const user = await User.findById(req.query.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const filePath = path.resolve(user.profileImg);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendDocument: async (req, res) => {
+    try {
+      //geting document path from client
+      const documentPath = req.query.documentPath;
+      const userId = req.query.userId;
+      //extracting user form database
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      //checking if required document exists in database
+      if (!user.education.documents.includes(documentPath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      const filePath = path.resolve(`images/documents/${documentPath}`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  createMeritScholarship: async (req, res) => {
+    try {
+      //extracting Admin just for verification
+      const userDetails = await Alumni.findById(req.userId);
+      if (!userDetails) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      //creating a new scholarship
+      const newScholarship = new Scholarship({
+        ...req.body,
+        image: "",
+        issueDate: Date.now(),
+        status: "awaiting",
+        creator: {
+          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          email: userDetails.email,
+          role: "alumni",
+        },
+      });
+      const scholarshipDetails = await newScholarship.save();
+
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        matricPercentage: scholarshipDetails.matricPercentage,
+        intermediatePercentage: scholarshipDetails.intermediatePercentage,
+        bachelorCGPA: scholarshipDetails.bachelorCGPA,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+        otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
+      };
+      // Returning success message
+      res.status(201).json({
+        message: "Scholarship created successfully",
+        scholarshipDetails: responseData,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  createNeedScholarship: async (req, res) => {
+    try {
+      //extracting Admin just for verification
+      const userDetails = await Alumni.findById(req.userId);
+      if (!userDetails) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      //creating a new scholarship
+      const newScholarship = new Scholarship({
+        ...req.body,
+        image: "",
+        issueDate: new Date(),
+        status: "awaiting",
+        creator: {
+          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          email: userDetails.email,
+          role: "alumni",
+        },
+      });
+      const scholarshipDetails = await newScholarship.save();
+
+      //preparing response
+      let responseData = {
+        _id: scholarshipDetails._id.toString(),
+        type: scholarshipDetails.type,
+        title: scholarshipDetails.title,
+        issueDate: scholarshipDetails.issueDate,
+        closeDate: scholarshipDetails.closeDate,
+        image: scholarshipDetails.image,
+        status: scholarshipDetails.status,
+        familyIncome: scholarshipDetails.familyIncome,
+        description: scholarshipDetails.description,
+        eligibilityCriteria: scholarshipDetails.eligibilityCriteria,
+        instructions: scholarshipDetails.instructions,
+        otherRequirements: scholarshipDetails.otherRequirements,
+        creator: scholarshipDetails.creator,
+      };
+
+      // Returning success message
+      res.status(201).json({
+        message: "Scholarship created successfully",
+        scholarshipDetails: responseData,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
       });
     }
   },
