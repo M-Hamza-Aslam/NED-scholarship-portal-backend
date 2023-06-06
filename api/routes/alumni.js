@@ -4,6 +4,7 @@ const {
   signUp,
   emailVerification,
   verifyCode,
+  getLoginData,
 } = require("../controllers/alumni");
 
 const authenticateToken = require("../middlewares/isAuth");
@@ -17,5 +18,6 @@ router.post("/login", validateLogin, login);
 router.post("/signup", validateSignUp, signUp);
 router.get("/emailVerification", authenticateToken, emailVerification);
 router.post("/verifyCode", authenticateToken, verifyCode);
+router.get("/getLoginData", authenticateToken, getLoginData);
 
 module.exports = router;

@@ -73,8 +73,8 @@ module.exports = {
       };
       res.status(200).json({
         message: "Login successful",
-        alumniDetails: alumniData,
-        adminId: alumniDetails._id.toString(),
+        userDetails: alumniData,
+        userId: alumniDetails._id.toString(),
         token: token,
       });
     } catch (error) {
@@ -123,7 +123,7 @@ module.exports = {
       //creating token
       const token = jwt.sign(
         {
-          alumniId: alumniDetails._id.toString(),
+          userId: alumniDetails._id.toString(),
           userRole: alumniDetails.userRole,
           expiration: Date.now() + 3600000,
         },
@@ -144,7 +144,7 @@ module.exports = {
       // Returning success message
       res.status(201).json({
         message: "Alumni created successfully, please verify your Email!",
-        alumniDetails: alumniData,
+        userDetails: alumniData,
         userId: alumniDetails._id.toString(),
         token: token,
       });
@@ -229,6 +229,46 @@ module.exports = {
     } catch (error) {
       res.status(400).json({
         message: error.message,
+      });
+    }
+  },
+  getLoginData: async (req, res) => {
+    try {
+      const userDetails = await Alumni.findById(req.userId);
+      if (!userDetails) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: userDetails._id.toString(),
+          userRole: userDetails.userRole,
+          expiration: Date.now() + 3600000,
+        },
+        process.env.JWT_SecretKey,
+        { expiresIn: "1h" }
+      );
+
+      const userData = {
+        email: userDetails.email,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        phoneNumber: userDetails.phoneNumber,
+        profileStatus: userDetails.profileStatus,
+        userRole: userDetails.userRole,
+        profileImg: userDetails.profileImg,
+        isVerified: userDetails.isVerified,
+      };
+      res.status(200).json({
+        message: "User Credentials fetched successfully",
+        userDetails: userData,
+        userId: userDetails._id.toString(),
+        token: token,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
       });
     }
   },
