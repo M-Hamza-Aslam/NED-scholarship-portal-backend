@@ -13,6 +13,8 @@ const jwt = require("jsonwebtoken");
 // const fs = require("fs");
 // const PDFDocument = require("pdfkit");
 const randomatic = require("randomatic");
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
 const transporter = nodemailer.createTransport(
   sendgridTransport({
     auth: {
