@@ -13,6 +13,13 @@ const jwt = require("jsonwebtoken");
 // const fs = require("fs");
 // const PDFDocument = require("pdfkit");
 const randomatic = require("randomatic");
+const transporter = nodemailer.createTransport(
+  sendgridTransport({
+    auth: {
+      api_key: process.env.SendsGrid_API_Key,
+    },
+  })
+);
 
 module.exports = {
   //For alumni login
