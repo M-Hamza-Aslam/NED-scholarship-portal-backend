@@ -44,7 +44,7 @@ module.exports = {
 
       const token = jwt.sign(
         {
-          adminId: alumniDetails._id.toString(),
+          userId: alumniDetails._id.toString(),
           userRole: alumniDetails.userRole,
           expiration: Date.now() + 3600000,
         },
