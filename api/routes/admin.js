@@ -18,6 +18,9 @@ const {
   getMarksheet,
   generateReport,
   appliedScholarshipReport,
+  getAlumniScholarship,
+  getAlumniByEmail,
+  alumniScholarshipStatus,
 } = require("../controllers/admin");
 
 const { body } = require("express-validator");
@@ -95,5 +98,11 @@ router.get("/scholarship-report", authenticateToken, generateReport);
 
 // Generate applied scholarship report
 router.get("/applied-scholarship-report/:userId", authenticateToken, appliedScholarshipReport);
+
+router.get("/created-scholarship-list", authenticateToken, getAlumniScholarship);
+
+router.get("/alumniByEmail/:email", authenticateToken, getAlumniByEmail);
+
+router.patch("/update-scholarship-status", alumniScholarshipStatus );
 
 module.exports = router;
