@@ -488,7 +488,7 @@ module.exports = {
       if (!value) {
         return Promise.reject("Name is required");
       }
-      const regex = /^[A-Za-z]+$/;
+      const regex = /^[a-zA-Z]+( [a-zA-Z]+)*$/;
       if (!regex.test(value)) {
         return Promise.reject("Name should only contain letters");
       }

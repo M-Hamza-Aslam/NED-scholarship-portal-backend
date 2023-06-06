@@ -54,6 +54,10 @@ const scholarshipSchema = new Schema({
     type: String,
     required: true,
   },
+  otherRequirements: {
+    type: Array,
+    require: true,
+  },
 });
 
 module.exports = mongoose.model("Scholarship", scholarshipSchema);

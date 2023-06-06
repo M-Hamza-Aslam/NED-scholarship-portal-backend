@@ -29,7 +29,11 @@ app.use(scholarshipRoutes);
 app.use("/admin", adminRoutes);
 app.use("/alumni", alumniRoutes);
 
-// Setting mongoose connection and starting server
+// Call the scheduler function to start the task
+const runScheduler = require("./util/cornSchedulars");
+runScheduler();
+
+// setting mongoose connection and starting server
 mongoose.set("strictQuery", false);
 mongoose
   .connect(process.env.MongoDB_URI)
