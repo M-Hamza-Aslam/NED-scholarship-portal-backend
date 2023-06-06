@@ -56,7 +56,9 @@ module.exports = {
         firstName: alumniDetails.firstName,
         lastName: alumniDetails.lastName,
         phoneNumber: alumniDetails.phoneNumber,
+        profileStatus: alumniDetails.profileStatus,
         userRole: alumniDetails.userRole,
+        profileImg: alumniDetails.profileImg,
         isVerified: alumniDetails.isVerified,
       };
       res.status(200).json({
