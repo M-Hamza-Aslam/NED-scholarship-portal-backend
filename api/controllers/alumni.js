@@ -22,6 +22,7 @@ const transporter = nodemailer.createTransport(
     },
   })
 );
+const crypto = require("crypto");
 
 module.exports = {
   //For alumni login
@@ -269,6 +270,87 @@ module.exports = {
       console.log(error);
       res.status(500).json({
         message: "Internal server error",
+      });
+    }
+  },
+  //For student forget password
+  forgotPassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+      const alumni = await Alumni.findOne({ email: req.body.email });
+      if (!alumni) {
+        return res.status(401).json({
+          message: "alumni not found",
+        });
+      }
+      crypto.randomBytes(32, async (err, buf) => {
+        if (err) {
+          throw new Error("token generation failed");
+        } else {
+          const token = buf.toString("hex");
+          alumni.resetToken = token;
+          alumni.resetTokenExpiration = Date.now() + 3600000;
+          await alumni.save();
+          //sending Email
+          transporter.sendMail(
+            {
+              to: req.body.email,
+              from: "hamza.prolink@gmail.com",
+              subject: "Reset Password",
+              html: `
+          <p>Have you requested for resetting your password ?</p>
+          <p>Click this <a href="http://localhost:3000/auth/reset-password/${token}" >Link</a>  to reset your password</p>
+        `,
+            },
+            (err) => {
+              console.log(err);
+            }
+          );
+          res.status(200).json({
+            message:
+              "Reset password link has been sent to your provided Email!",
+          });
+        }
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: error.message,
+      });
+    }
+  },
+
+  //For student reset password
+  resetPassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+      const token = req.body.token;
+      const alumni = await Alumni.findOne({
+        resetToken: token,
+        resetTokenExpiration: { $gt: Date.now() },
+      });
+      if (!alumni) {
+        return res.status(401).json({
+          message: "alumni not found",
+        });
+      }
+      const newPassword = req.body.newPassword;
+      const newHashedPassword = await bcrypt.hash(newPassword, 10);
+      alumni.password = newHashedPassword;
+      alumni.resetToken = undefined;
+      alumni.resetTokenExpiration = undefined;
+      await alumni.save();
+      res.status(201).json({
+        message: "Password has been updated successfully!",
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: error.message,
       });
     }
   },
