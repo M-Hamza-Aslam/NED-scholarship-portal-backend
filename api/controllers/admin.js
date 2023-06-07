@@ -1,10 +1,12 @@
 const Admin = require("../models/admin");
+const Scholarship = require("../models/scholarship");
+const Alumni = require('../models/alumni');
+const User = require("../models/user");
+
+const { getContentType } = require("../../util/contentType");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Scholarship = require("../models/scholarship");
-const User = require("../models/user");
-const { getContentType } = require("../../util/contentType");
 const path = require("path");
 const fs = require("fs");
 const { createReadStream } = require("fs");
@@ -556,6 +558,7 @@ module.exports = {
     try {
       //getting scholarship Id from client
       const scholarshipId = req.query.scholarshipId;
+      console.log("scholarshipId", scholarshipId);
       //finding users
       let users = await User.find({
         appliedScholarship: {
@@ -564,12 +567,34 @@ module.exports = {
           },
         },
       });
+      console.log("users: ",users);
+      //Extracting Information from User
+      const education = users[0].education;
+      const matricPercentage = education.matric.percentage;
+      const intermediatePercentage = education.intermediate.percentage;
+      const cgpaPercentage = ((education.bachelor.obtainedCGPA)/4.0)*100;
+      const merit = (0.5 * cgpaPercentage) + (0.25 * matricPercentage) + (0.25 * intermediatePercentage);
+
+      const familyIncome = users[0].familyDetails.grossIncome;
+      const noOfDependents = users[0].dependantDetails.length;
+      const incomePerDependent = familyIncome / noOfDependents;
+
+
+
+
+
 
       users = users.map((user) => {
         return {
           _id: user._id.toString(),
           firstName: user.firstName,
           lastName: user.lastName,
+          merit: merit,
+          meritFormula: "CGPA(%): 50% + Intermediate(%): 25% + Matric(%): 25%",
+          matricPercentage: matricPercentage,
+          intermediatePercentage: intermediatePercentage,
+          CGPA: cgpaPercentage,
+          need: incomePerDependent,
           status: user.appliedScholarship.find(
             (s) => s.scholarshipId.toString() === scholarshipId
           ).status,
@@ -783,7 +808,7 @@ module.exports = {
   appliedScholarshipReport: async (req, res) => {
     try {
       const userId = req.params.userId;
-      console.log("UserId123:", userId);
+      // console.log("UserId123:", userId);
 
       const user = await User.findById(userId);
       console.log("user:", user);
@@ -854,6 +879,124 @@ module.exports = {
     } catch (err) {
       console.error(err);
       res.status(500).send("Server error");
+    }
+  },
+  getAlumniScholarship: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const scholarships = await Scholarship.find({
+        "creator.role": "alumni",
+      });
+
+      
+      res.json({ scholarships });
+    } catch (error) {
+      console.error("Error in getCreatedScholarships", error);
+      res.status(500).json({
+        message: "Something went wrong with the API",
+        error: error.message,
+      });
+    }
+  },
+  getAlumniByEmail: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+      }
+
+      const email = req.params.email;
+
+      const alumni = await Alumni.findOne( { email: email } );
+      if (!alumni) {
+        return res.status(401).json({
+          message: "Alumni not found",
+        });
+      }
+
+
+      res.json({ alumni });
+    } catch (error) {
+      console.error("Error in getAlumniByEmail", error);
+      res.status(500).json({
+        message: "Something went wrong with the API",
+        error: error.message,
+      });
+    }
+  },
+  alumniScholarshipStatus: async (req, res) => {
+    try {
+      const { alumniEmail, scholarshipId, updatedStatus } = req.body;
+
+      const scholarships = await Scholarship.find({
+        "creator.role": "alumni",
+      });
+
+      if (!scholarships || scholarships.length === 0) {
+        return res.status(404).json({
+          message: "Scholarship not found",
+        });
+      }
+
+      const alumni = await Alumni.findOne({ email: alumniEmail });
+
+      if (!alumni) {
+        return res.status(401).json({
+          message: "Alumni not found",
+        });
+      }
+
+      let scholarshipFound = false;
+      for (const scholarship of scholarships) {
+        if (scholarship._id.toString() === scholarshipId.toString()) {
+          scholarship.status = updatedStatus;
+          await scholarship.save();
+          scholarshipFound = true;
+          break;
+        }
+      }
+
+      if (!scholarshipFound) {
+        return res.status(404).json({
+          message: "Scholarship not found",
+        });
+      }
+
+      let createdScholarshipFound = false;
+      for (const createdScholarship of alumni.createdScholarships) {
+        if (createdScholarship.scholarshipId.toString() === scholarshipId.toString()) {
+          if (updatedStatus === "active"){
+            createdScholarship.status = "approved"
+          }
+          else {
+            createdScholarship.status = updatedStatus;
+          }
+          createdScholarshipFound = true;
+          break;
+        }
+      }
+
+      if (!createdScholarshipFound) {
+        return res.status(404).json({
+          message: "Created scholarship not found for the alumni",
+        });
+      }
+
+      await alumni.save();
+
+      return res.status(201).json({
+        message: "Alumni Created Scholarship status updated successfully",
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        error: err.message,
+        message: "Internal server error",
+      });
     }
   },
 };

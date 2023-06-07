@@ -171,6 +171,8 @@ module.exports = {
   appliedScholarship: async (req, res) => {
     try {
       const userId = req.userId; // extract userId from token
+      const scholarshipId = req.params.id;
+      console.log(scholarshipId);
 
       const { body } = req;
       const errors = validationResult(req);
@@ -178,50 +180,79 @@ module.exports = {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const { scholarshipId } = body;
-
       const user = await User.findById(userId);
-
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       // Check if all profile information fields are completely filled
       const { personalInfo, familyDetails, education } = user;
-      if (
-        !personalInfo ||
-        !familyDetails ||
-        !education ||
-        !education.matric ||
-        !education.intermediate ||
-        !education.bachelor ||
-        !education.documents ||
-        education.documents.length === 0
-      ) {
+      console.log("user.profileStatus", user.profileStatus);
+      if (user.profileStatus != 100) {
         return res.status(400).json({
           error: "Please fill in all the required profile information before applying for a scholarship.",
         });
       }
 
+      // Check weather user already applied in that scholarship
       const hasApplied = user.appliedScholarship.some(
         (scholarship) => scholarship.scholarshipId.toString() === scholarshipId
       );
-
       if (hasApplied) {
         return res.json({
           error: "User has already applied to this scholarship",
         });
       }
 
+      // Check if any user's scholarship has already approved
       const hasApproved = user.appliedScholarship.some(
         (scholarship) => scholarship.status === "approved"
       );
-
       if (hasApproved) {
         return res.json({
           error: "User already has an approved scholarship",
         });
-      } else {
+      }
+      
+      else {
+        //Now checking weather the user profile meeting scolarship criteria 
+        const scholarshipDetails = await Scholarship.findById(scholarshipId);
+        if (!scholarshipDetails) {
+          return res.status(404).json({
+            message: "Scholarship not found",
+          });
+        }
+        
+        // For merit based scholarships 
+        if(scholarshipDetails.type === "merit"){
+          //Criteria
+          if (scholarshipDetails.matricPercentage > user.education.matric.percentage){
+            return res.status(400).json({
+              error: "You are not eligible for this scholarlarship because your matric % is not enough.",
+            });
+          }
+          if (scholarshipDetails.intermediatePercentage > user.education.intermediate.percentage){
+            return res.status(400).json({
+              error: "You are not eligible for this scholarlarship because your inter % is not enough.",
+            });
+          }
+          if (scholarshipDetails.bachelorCGPA > user.education.bachelor.obtainedCGPA){
+            return res.status(400).json({
+              error: "You are not eligible for this scholarlarship because you CGPA is not enough.",
+            });
+          }
+        }
+
+        // For need based scholarships 
+        if (scholarshipDetails.type === 'need') {
+          //Criteria
+          if (scholarshipDetails.familyIncome < user.familyDetails.grossIncome) {
+            return res.status(400).json({
+              error: "You are not eligible for this scholarlarship because your family income not matching the criteria.",
+            });
+          }
+        }
+
         user.appliedScholarship.push({
           scholarshipId: new mongoose.Types.ObjectId(scholarshipId),
           status: "awaiting",

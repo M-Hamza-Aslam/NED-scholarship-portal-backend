@@ -22,7 +22,7 @@ router.get(
   getAppliedScholarshipList
 );
 
-router.post("/apply-scholarship", authenticateToken, appliedScholarship);
+router.post("/apply-scholarship/:id", authenticateToken, appliedScholarship);
 
 router.get("/scholarshipImg/:id", authenticateToken, getScholarshipImg);
 
