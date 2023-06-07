@@ -554,8 +554,8 @@ module.exports = {
         issueDate: Date.now(),
         status: "awaiting",
         creator: {
+          id: req.userId,
           name: `${userDetails.firstName} ${userDetails.lastName}`,
-          email: userDetails.email,
           role: "alumni",
         },
       });
@@ -605,8 +605,8 @@ module.exports = {
         issueDate: new Date(),
         status: "awaiting",
         creator: {
+          id: req.userId,
           name: `${userDetails.firstName} ${userDetails.lastName}`,
-          email: userDetails.email,
           role: "alumni",
         },
       });

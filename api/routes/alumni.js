@@ -49,6 +49,7 @@ router.get("/appliedUsersList", authenticateToken, appliedUsersList);
 router.get("/user-data", authenticateToken, getUserData);
 router.get("/userProfileImg", authenticateToken, sendUserProfileImg);
 router.get("/document", authenticateToken, sendDocument);
+
 router.post(
   "/create-merit-scholarship",
   authenticateToken,

@@ -19,7 +19,7 @@ const {
   generateReport,
   appliedScholarshipReport,
   getAlumniScholarship,
-  getAlumniByEmail,
+  getAlumniById,
   alumniScholarshipStatus,
 } = require("../controllers/admin");
 
@@ -109,7 +109,7 @@ router.get(
   getAlumniScholarship
 );
 
-router.get("/alumniByEmail/:email", authenticateToken, getAlumniByEmail);
+router.get("/alumniById/:id", getAlumniById);
 
 router.patch("/update-scholarship-status", alumniScholarshipStatus);
 

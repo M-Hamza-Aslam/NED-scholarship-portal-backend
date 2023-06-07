@@ -165,8 +165,8 @@ module.exports = {
         issueDate: Date.now(),
         status: "active",
         creator: {
+          id: req.userId,
           name: `${userDetails.firstName} ${userDetails.lastName}`,
-          email: userDetails.email,
           role: "admin",
         },
       });
@@ -216,8 +216,8 @@ module.exports = {
         issueDate: new Date(),
         status: "active",
         creator: {
+          id: req.userId,
           name: `${userDetails.firstName} ${userDetails.lastName}`,
-          email: userDetails.email,
           role: "admin",
         },
       });
@@ -901,25 +901,36 @@ module.exports = {
       });
     }
   },
-  getAlumniByEmail: async (req, res) => {
+  getAlumniById: async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
 
-      const email = req.params.email;
+      const alumniId = req.params.id;
 
-      const alumni = await Alumni.findOne({ email: email });
+      const alumni = await Alumni.findById(alumniId);
       if (!alumni) {
         return res.status(401).json({
           message: "Alumni not found",
         });
       }
+      const alumniDetails = {
+        firstName: alumni.firstName,
+        lastName: alumni.lastName,
+        userRole: alumni.userRole,
+        email: alumni.email,
+        phoneNumber: alumni.phoneNumber,
+        profileImg: alumni.profileImg,
+        profileStatus: alumni.profileStatus,
+        isVerified: alumni.isVerified,
+        personalInfo: alumni.personalInfo,
+      };
 
-      res.json({ alumni });
+      res.json(alumniDetails);
     } catch (error) {
-      console.error("Error in getAlumniByEmail", error);
+      console.error("Error in getAlumniById", error);
       res.status(500).json({
         message: "Something went wrong with the API",
         error: error.message,
