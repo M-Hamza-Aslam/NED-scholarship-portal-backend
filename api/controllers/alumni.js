@@ -371,27 +371,24 @@ module.exports = {
           const closeDate = new Date(scholarship.scholarshipId.closeDate);
           return {
             status: scholarship.status,
-            scholarshipDetails: {
-              _id: scholarship.scholarshipId._id,
-              title: scholarship.scholarshipId.title,
-              image: scholarship.scholarshipId.image,
-              issueDate: {
-                month: issueDate.toLocaleString("default", { month: "long" }),
-                day: issueDate.getDate(),
-                year: issueDate.getFullYear(),
-              },
-              closeDate: {
-                month: closeDate.toLocaleString("default", { month: "long" }),
-                day: closeDate.getDate(),
-                year: closeDate.getFullYear(),
-              },
-              status: scholarship.scholarshipId.status,
-              description: scholarship.scholarshipId.description,
-              eligibilityCriteria:
-                scholarship.scholarshipId.eligibilityCriteria,
-              instructions: scholarship.scholarshipId.instructions,
-              otherRequirements: scholarship.scholarshipId.otherRequirements,
+            _id: scholarship.scholarshipId._id,
+            title: scholarship.scholarshipId.title,
+            image: scholarship.scholarshipId.image,
+            issueDate: {
+              month: issueDate.toLocaleString("default", { month: "long" }),
+              day: issueDate.getDate(),
+              year: issueDate.getFullYear(),
             },
+            closeDate: {
+              month: closeDate.toLocaleString("default", { month: "long" }),
+              day: closeDate.getDate(),
+              year: closeDate.getFullYear(),
+            },
+            status: scholarship.scholarshipId.status,
+            description: scholarship.scholarshipId.description,
+            eligibilityCriteria: scholarship.scholarshipId.eligibilityCriteria,
+            instructions: scholarship.scholarshipId.instructions,
+            otherRequirements: scholarship.scholarshipId.otherRequirements,
           };
         }
       );

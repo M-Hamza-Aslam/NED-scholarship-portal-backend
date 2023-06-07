@@ -29,12 +29,12 @@ const {
   validateSignUp,
   validateForgotPassword,
   validateResetPassword,
+  validatePersonalInfo,
 } = require("../../util/alumniInputValidation");
 const {
   validateMeritScholarship,
   validateNeedScholarship,
 } = require("../../util/adminInputValidation");
-const { validatePersonalInfo } = require("../../util/userInputValidation");
 
 router.post("/login", validateLogin, login);
 router.post("/signup", validateSignUp, signUp);
@@ -44,7 +44,6 @@ router.get("/getLoginData", authenticateToken, getLoginData);
 router.post("/forgot-password", validateForgotPassword, forgotPassword);
 router.post("/reset-password", validateResetPassword, resetPassword);
 
-<<<<<<< HEAD
 router.get("/created-scholarships", authenticateToken, getCreatedScholarships);
 router.get("/appliedUsersList", authenticateToken, appliedUsersList);
 router.get("/user-data", authenticateToken, getUserData);
@@ -92,6 +91,3 @@ router.post(
 );
 router.get("/profileImg", authenticateToken, sendProfileImg);
 module.exports = router;
-=======
-module.exports = router;
->>>>>>> ac5016b45d378f4b76fd5885efc2d19acbb09e23
