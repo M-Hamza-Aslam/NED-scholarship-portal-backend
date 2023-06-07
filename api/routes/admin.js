@@ -111,6 +111,10 @@ router.get(
 
 router.get("/alumniById/:id", authenticateToken, getAlumniById);
 
-router.patch("/update-scholarship-status", alumniScholarshipStatus);
+router.patch(
+  "/update-scholarship-status",
+  authenticateToken,
+  alumniScholarshipStatus
+);
 
 module.exports = router;
