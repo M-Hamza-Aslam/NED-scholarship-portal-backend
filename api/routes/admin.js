@@ -109,7 +109,7 @@ router.get(
   getAlumniScholarship
 );
 
-router.get("/alumniById/:id", getAlumniById);
+router.get("/alumniById/:id", authenticateToken, getAlumniById);
 
 router.patch("/update-scholarship-status", alumniScholarshipStatus);
 

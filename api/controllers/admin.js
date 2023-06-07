@@ -939,19 +939,10 @@ module.exports = {
   },
   alumniScholarshipStatus: async (req, res) => {
     try {
-      const { alumniEmail, scholarshipId, updatedStatus } = req.body;
+      const { alumniId, scholarshipId, updatedStatus } = req.body;
 
-      const scholarships = await Scholarship.find({
-        "creator.role": "alumni",
-      });
-
-      if (!scholarships || scholarships.length === 0) {
-        return res.status(404).json({
-          message: "Scholarship not found",
-        });
-      }
-
-      const alumni = await Alumni.findOne({ email: alumniEmail });
+      //finding Alumni
+      const alumni = await Alumni.findById(alumniId);
 
       if (!alumni) {
         return res.status(401).json({
@@ -959,44 +950,40 @@ module.exports = {
         });
       }
 
-      let scholarshipFound = false;
-      for (const scholarship of scholarships) {
-        if (scholarship._id.toString() === scholarshipId.toString()) {
-          scholarship.status = updatedStatus;
-          await scholarship.save();
-          scholarshipFound = true;
-          break;
-        }
-      }
+      //finding scholarship
+      const scholarship = await Scholarship.findOne({
+        "creator.role": "alumni",
+        "creator.id": alumniId,
+        _id: scholarshipId,
+      });
 
-      if (!scholarshipFound) {
+      if (!scholarship || scholarship.length === 0) {
         return res.status(404).json({
           message: "Scholarship not found",
         });
       }
 
-      let createdScholarshipFound = false;
+      //updating scholarship status
+      if (updatedStatus === "approved") {
+        scholarship.status = "active";
+      } else if (updatedStatus === "declined") {
+        scholarship.status = "declined";
+      } else {
+        return res.status(401).json({
+          message: "Invalid Scholarship Status Provided!",
+        });
+      }
+      await scholarship.save();
+
+      //updating scholarship status for alumni
       for (const createdScholarship of alumni.createdScholarships) {
         if (
           createdScholarship.scholarshipId.toString() ===
           scholarshipId.toString()
         ) {
-          if (updatedStatus === "active") {
-            createdScholarship.status = "approved";
-          } else {
-            createdScholarship.status = updatedStatus;
-          }
-          createdScholarshipFound = true;
-          break;
+          createdScholarship.status = updatedStatus;
         }
       }
-
-      if (!createdScholarshipFound) {
-        return res.status(404).json({
-          message: "Created scholarship not found for the alumni",
-        });
-      }
-
       await alumni.save();
 
       return res.status(201).json({

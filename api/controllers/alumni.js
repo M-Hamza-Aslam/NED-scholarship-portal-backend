@@ -543,8 +543,8 @@ module.exports = {
   createMeritScholarship: async (req, res) => {
     try {
       //extracting Admin just for verification
-      const userDetails = await Alumni.findById(req.userId);
-      if (!userDetails) {
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
         return res.status(404).json({ message: "Alumni not found" });
       }
       //creating a new scholarship
@@ -555,11 +555,19 @@ module.exports = {
         status: "awaiting",
         creator: {
           id: req.userId,
-          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          name: `${alumni.firstName} ${alumni.lastName}`,
           role: "alumni",
         },
       });
       const scholarshipDetails = await newScholarship.save();
+
+      //saving in Alumni
+      alumni.createdScholarships.push({
+        scholarshipId: scholarshipDetails._id,
+        status: "awaiting",
+      });
+
+      await alumni.save();
 
       //preparing response
       let responseData = {
@@ -594,8 +602,8 @@ module.exports = {
   createNeedScholarship: async (req, res) => {
     try {
       //extracting Admin just for verification
-      const userDetails = await Alumni.findById(req.userId);
-      if (!userDetails) {
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
         return res.status(404).json({ message: "Alumni not found" });
       }
       //creating a new scholarship
@@ -606,11 +614,19 @@ module.exports = {
         status: "awaiting",
         creator: {
           id: req.userId,
-          name: `${userDetails.firstName} ${userDetails.lastName}`,
+          name: `${alumni.firstName} ${alumni.lastName}`,
           role: "alumni",
         },
       });
       const scholarshipDetails = await newScholarship.save();
+
+      //saving in Alumni
+      alumni.createdScholarships.push({
+        scholarshipId: scholarshipDetails._id,
+        status: "awaiting",
+      });
+
+      await alumni.save();
 
       //preparing response
       let responseData = {
