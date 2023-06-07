@@ -18,6 +18,7 @@ const {
   updatePersonalInfo,
   uploadProfileImg,
   sendProfileImg,
+  uploadScholarshipImg,
 } = require("../controllers/alumni");
 
 const authenticateToken = require("../middlewares/isAuth");
@@ -59,6 +60,16 @@ router.post(
   authenticateToken,
   validateNeedScholarship,
   createNeedScholarship
+);
+router.post(
+  "/upload-scholarshipImg",
+  authenticateToken,
+  upload("images/scholarshipImg", [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+  ]).single("scholarshipImg"),
+  uploadScholarshipImg
 );
 
 router.get("/personal-info", authenticateToken, getPersonalInfo);

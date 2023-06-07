@@ -685,6 +685,41 @@ module.exports = {
       });
     }
   },
+  uploadScholarshipImg: async (req, res) => {
+    try {
+      //extracting image file and scholarshipId coming from frontEnd
+      const scholarshipId = req.body.scholarshipId;
+      const image = req.file;
+      if (!image) {
+        return res.status(415).json({
+          message: "Invalid File",
+        });
+      }
+      //extracting user from DB just for validation
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      //extracting scholarship
+      const scholarship = await Scholarship.findById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ message: "Scholarship not found" });
+      }
+      //saving image path
+      scholarship.image = image.filename;
+
+      const updatedscholarship = await scholarship.save();
+      res.status(201).json({
+        message: "scholarship image Uploaded",
+        image: updatedscholarship.image,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
   getPersonalInfo: async (req, res, next) => {
     try {
       //finding user from database
