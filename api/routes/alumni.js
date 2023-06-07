@@ -14,9 +14,14 @@ const {
   sendDocument,
   createMeritScholarship,
   createNeedScholarship,
+  getPersonalInfo,
+  updatePersonalInfo,
+  uploadProfileImg,
+  sendProfileImg,
 } = require("../controllers/alumni");
 
 const authenticateToken = require("../middlewares/isAuth");
+const upload = require("../../util/multer");
 
 const {
   validateLogin,
@@ -28,6 +33,7 @@ const {
   validateMeritScholarship,
   validateNeedScholarship,
 } = require("../../util/adminInputValidation");
+const { validatePersonalInfo } = require("../../util/userInputValidation");
 
 router.post("/login", validateLogin, login);
 router.post("/signup", validateSignUp, signUp);
@@ -54,4 +60,23 @@ router.post(
   validateNeedScholarship,
   createNeedScholarship
 );
+
+router.get("/personal-info", authenticateToken, getPersonalInfo);
+router.post(
+  "/personal-info",
+  authenticateToken,
+  validatePersonalInfo,
+  updatePersonalInfo
+);
+router.post(
+  "/upload-profileImg",
+  authenticateToken,
+  upload("images/alumniProfileImg", [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+  ]).single("profileImg"),
+  uploadProfileImg
+);
+router.get("/profileImg", authenticateToken, sendProfileImg);
 module.exports = router;

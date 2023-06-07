@@ -645,4 +645,140 @@ module.exports = {
       });
     }
   },
+  updatePersonalInfo: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        console.log(errors.array());
+        return res.status(422).json({ errors: errors.array() });
+      }
+      const { firstName, lastName, phoneNumber, personalInfo } = req.body;
+
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      if (alumni.personalInfo.isInitial) {
+        alumni.profileStatus += 80;
+        alumni.personalInfo.isInitial = false;
+      }
+      //update info
+      alumni.firstName = firstName;
+      alumni.lastName = lastName;
+      alumni.phoneNumber = phoneNumber;
+      alumni.personalInfo = { isInitial: false, ...personalInfo };
+      const updatedAlumni = await alumni.save();
+      res.status(201).json({
+        message: "Personal information updated",
+        updatedUserData: {
+          personalInfo: updatedAlumni.personalInfo,
+          firstName: updatedAlumni.firstName,
+          lastName: updatedAlumni.lastName,
+          phoneNumber: updatedAlumni.phoneNumber,
+          profileStatus: updatedAlumni.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  getPersonalInfo: async (req, res, next) => {
+    try {
+      //finding user from database
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      //sending data to front-end
+      let personalInfo;
+      if (!alumni.personalInfo) {
+        personalInfo = {};
+      }
+      personalInfo = alumni.personalInfo;
+      res.status(200).json({
+        userData: {
+          personalInfo: personalInfo,
+          profileStatus: alumni.profileStatus,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  uploadProfileImg: async (req, res) => {
+    try {
+      const image = req.file;
+      if (!image) {
+        return res.status(415).json({
+          message: "Invalid File",
+        });
+      }
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      if (alumni.profileImg !== "") {
+        // Remove image from the file storage
+        fs.unlink(alumni.profileImg, function (err) {
+          if (err) {
+            console.error(err);
+          } else {
+            console.log("File deleted successfully");
+          }
+        });
+      }
+      const imageUrl = image.path.replace(/\\/g, "/");
+      //updating profileStatus if uploading image firstTime;
+      if (alumni.profileImg === "") {
+        alumni.profileStatus += 20;
+      }
+      alumni.profileImg = imageUrl;
+      const updatedAlumni = await alumni.save();
+      res.status(201).json({
+        message: "file Uploaded",
+        profileImg: updatedAlumni.profileImg,
+        profileStatus: updatedAlumni.profileStatus,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendProfileImg: async (req, res) => {
+    try {
+      const alumni = await Alumni.findById(req.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      const filePath = path.resolve(alumni.profileImg);
+      if (!fs.existsSync(filePath)) {
+        return res.status(401).json({
+          message: "Invalid File",
+        });
+      }
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
+
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
 };
