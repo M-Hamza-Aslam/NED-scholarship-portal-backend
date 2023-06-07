@@ -383,7 +383,7 @@ module.exports = {
               day: closeDate.getDate(),
               year: closeDate.getFullYear(),
             },
-            status: scholarship.scholarshipId.status,
+            // status: scholarship.scholarshipId.status,
             description: scholarship.scholarshipId.description,
             eligibilityCriteria: scholarship.scholarshipId.eligibilityCriteria,
             instructions: scholarship.scholarshipId.instructions,

@@ -1,6 +1,6 @@
 const Admin = require("../models/admin");
 const Scholarship = require("../models/scholarship");
-const Alumni = require('../models/alumni');
+const Alumni = require("../models/alumni");
 const User = require("../models/user");
 
 const { getContentType } = require("../../util/contentType");
@@ -567,22 +567,20 @@ module.exports = {
           },
         },
       });
-      console.log("users: ",users);
+      console.log("users: ", users);
       //Extracting Information from User
       const education = users[0].education;
       const matricPercentage = education.matric.percentage;
       const intermediatePercentage = education.intermediate.percentage;
-      const cgpaPercentage = ((education.bachelor.obtainedCGPA)/4.0)*100;
-      const merit = (0.5 * cgpaPercentage) + (0.25 * matricPercentage) + (0.25 * intermediatePercentage);
+      const cgpaPercentage = (education.bachelor.obtainedCGPA / 4.0) * 100;
+      const merit =
+        0.5 * cgpaPercentage +
+        0.25 * matricPercentage +
+        0.25 * intermediatePercentage;
 
       const familyIncome = users[0].familyDetails.grossIncome;
       const noOfDependents = users[0].dependantDetails.length;
       const incomePerDependent = familyIncome / noOfDependents;
-
-
-
-
-
 
       users = users.map((user) => {
         return {
@@ -892,8 +890,9 @@ module.exports = {
         "creator.role": "alumni",
       });
 
-      
-      res.json({ scholarships });
+      console.log(scholarships);
+
+      res.json(scholarships);
     } catch (error) {
       console.error("Error in getCreatedScholarships", error);
       res.status(500).json({
@@ -911,13 +910,12 @@ module.exports = {
 
       const email = req.params.email;
 
-      const alumni = await Alumni.findOne( { email: email } );
+      const alumni = await Alumni.findOne({ email: email });
       if (!alumni) {
         return res.status(401).json({
           message: "Alumni not found",
         });
       }
-
 
       res.json({ alumni });
     } catch (error) {
@@ -968,11 +966,13 @@ module.exports = {
 
       let createdScholarshipFound = false;
       for (const createdScholarship of alumni.createdScholarships) {
-        if (createdScholarship.scholarshipId.toString() === scholarshipId.toString()) {
-          if (updatedStatus === "active"){
-            createdScholarship.status = "approved"
-          }
-          else {
+        if (
+          createdScholarship.scholarshipId.toString() ===
+          scholarshipId.toString()
+        ) {
+          if (updatedStatus === "active") {
+            createdScholarship.status = "approved";
+          } else {
             createdScholarship.status = updatedStatus;
           }
           createdScholarshipFound = true;
