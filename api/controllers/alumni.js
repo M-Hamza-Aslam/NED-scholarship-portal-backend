@@ -364,7 +364,6 @@ module.exports = {
       if (!alumni) {
         return res.status(404).json({ message: "Alumni not found" });
       }
-
       const createdScholarships = alumni.createdScholarships.map(
         (scholarship) => {
           const issueDate = new Date(scholarship.scholarshipId.issueDate);
