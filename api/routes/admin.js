@@ -112,7 +112,7 @@ router.get(
 router.get("/alumniById/:id", authenticateToken, getAlumniById);
 
 router.patch(
-  "/update-scholarship-status",
+  "/created-scholarship-status",
   authenticateToken,
   alumniScholarshipStatus
 );

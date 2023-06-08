@@ -965,7 +965,7 @@ module.exports = {
 
       //updating scholarship status
       if (updatedStatus === "approved") {
-        scholarship.status = "approved";
+        scholarship.status = "active";
       } else if (updatedStatus === "declined") {
         scholarship.status = "declined";
       } else {
