@@ -95,7 +95,7 @@ router.post(
 
 router.get("/marksheet", authenticateToken, getMarksheet);
 // Generate scholarship report
-router.get("/scholarship-report", authenticateToken, generateReport);
+router.post("/scholarship-report", authenticateToken, generateReport);
 
 // Generate applied scholarship report
 router.get(

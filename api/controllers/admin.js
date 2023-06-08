@@ -451,14 +451,12 @@ module.exports = {
       //getting userId from client
       const userId = req.query.userId;
       const scholarshipId = req.query.scholarshipId;
-      console.log(scholarshipId);
       //extracting user
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       //extracting other requirements provided by the user for the scholarship
-      // console.log(user.appliedScholarship);
       const appliedScholarship = user.appliedScholarship.filter(
         (scholarship) =>
           scholarship.scholarshipId.toString() === scholarshipId.toString()
@@ -712,9 +710,7 @@ module.exports = {
   generateReport: async (req, res) => {
     try {
       const scholarshipId = req.body.id;
-      console.log("scholarshipId:", scholarshipId);
       const scholarship = await Scholarship.findById(scholarshipId);
-      console.log("scholarship:", scholarship);
 
       if (!scholarship) {
         return res.status(404).send("Scholarship not found");
@@ -750,7 +746,6 @@ module.exports = {
           },
         },
       });
-      console.log("awaitingUsers", awaitingUsers);
       if (awaitingUsers.length === 0) {
         doc.moveDown().fontSize(10).text("No awaiting users found");
       } else {
@@ -776,7 +771,6 @@ module.exports = {
           },
         },
       });
-      console.log("approvedUsers", approvedUsers);
       if (approvedUsers.length === 0) {
         doc.moveDown().fontSize(10).text("No approved users found");
       } else {
@@ -802,7 +796,6 @@ module.exports = {
           },
         },
       });
-      console.log("declinedUsers", declinedUsers);
       if (declinedUsers.length === 0) {
         doc.moveDown().fontSize(10).text("No declined users found");
       } else {
@@ -825,10 +818,8 @@ module.exports = {
   appliedScholarshipReport: async (req, res) => {
     try {
       const userId = req.params.userId;
-      // console.log("UserId123:", userId);
 
       const user = await User.findById(userId);
-      console.log("user:", user);
 
       if (!user) {
         return res.status(404).send("User not found");
@@ -860,7 +851,6 @@ module.exports = {
       doc.fontSize(16).text("Applied Scholarships:", { underline: true });
 
       const userAppliedScholarship = user.appliedScholarship;
-      console.log("userAppliedScholarship", userAppliedScholarship);
 
       if (userAppliedScholarship.length === 0) {
         doc.moveDown().fontSize(10).text("No applied scholarships found...");
@@ -908,8 +898,6 @@ module.exports = {
       const scholarships = await Scholarship.find({
         "creator.role": "alumni",
       });
-
-      console.log(scholarships);
 
       res.json(scholarships);
     } catch (error) {

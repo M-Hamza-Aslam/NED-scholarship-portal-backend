@@ -29,12 +29,14 @@ const {
   validateSignUp,
   validateForgotPassword,
   validateResetPassword,
-  validatePersonalInfo,
+  // validatePersonalInfo,
 } = require("../../util/alumniInputValidation");
 const {
   validateMeritScholarship,
   validateNeedScholarship,
 } = require("../../util/adminInputValidation");
+
+const { validatePersonalInfo } = require("../../util/userInputValidation");
 
 router.post("/login", validateLogin, login);
 router.post("/signup", validateSignUp, signUp);

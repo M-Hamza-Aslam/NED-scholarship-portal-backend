@@ -173,8 +173,6 @@ module.exports = {
       const scholarshipId = req.params.id;
       const { otherRequirements } = req.body;
 
-      console.log(scholarshipId);
-
       const { body } = req;
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -188,7 +186,6 @@ module.exports = {
 
       // Check if all profile information fields are completely filled
       const { personalInfo, familyDetails, education } = user;
-      console.log("user.profileStatus", user.profileStatus);
       if (user.profileStatus != 100) {
         return res.status(400).json({
           error:
