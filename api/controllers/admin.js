@@ -450,11 +450,21 @@ module.exports = {
     try {
       //getting userId from client
       const userId = req.query.userId;
+      const scholarshipId = req.query.scholarshipId;
+      console.log(scholarshipId);
       //extracting user
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+      //extracting other requirements provided by the user for the scholarship
+      // console.log(user.appliedScholarship);
+      const appliedScholarship = user.appliedScholarship.filter(
+        (scholarship) =>
+          scholarship.scholarshipId.toString() === scholarshipId.toString()
+      );
+      const otherRequirements = appliedScholarship[0].otherRequirements;
+
       //structuring userDetails;
       const userDetails = {
         userId: user._id.toString(),
@@ -475,6 +485,7 @@ module.exports = {
         familyDetails: user.familyDetails,
         education: user.education,
         dependantDetails: user.dependantDetails,
+        otherRequirements: otherRequirements,
       };
       //sending user data to front end
       res.status(200).json({
@@ -558,7 +569,6 @@ module.exports = {
     try {
       //getting scholarship Id from client
       const scholarshipId = req.query.scholarshipId;
-      console.log("scholarshipId", scholarshipId);
       //finding users
       let users = await User.find({
         appliedScholarship: {
@@ -567,7 +577,6 @@ module.exports = {
           },
         },
       });
-      console.log("users: ", users);
       //Extracting Information from User
       const education = users[0].education;
       const matricPercentage = education.matric.percentage;
