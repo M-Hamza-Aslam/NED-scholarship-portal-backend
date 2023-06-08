@@ -619,25 +619,35 @@ module.exports = {
         });
       }
 
-      // Check if updated status is "approved" and user has already approved scholarship
-      for (const scholarship of user.appliedScholarship) {
-        if (
-          scholarship.status === "approved" &&
-          scholarship.scholarshipId.toString() !== scholarshipId
-        ) {
+      // Find the scholarship to update
+      const scholarshipToUpdate = user.appliedScholarship.find(
+        (scholarship) => scholarship.scholarshipId.toString() === scholarshipId
+      );
+
+      if (!scholarshipToUpdate) {
+        return res.status(404).json({
+          message: "Scholarship not found",
+        });
+      }
+
+      // Check if the updated status is "approved"
+      if (updatedStatus === "approved") {
+        // Check if the user already has an approved scholarship with a different scholarshipId
+        const hasApprovedScholarship = user.appliedScholarship.some(
+          (scholarship) =>
+            scholarship.status === "approved" &&
+            scholarship.scholarshipId.toString() !== scholarshipId
+        );
+
+        if (hasApprovedScholarship) {
           return res.status(403).json({
             message: "User already has an approved scholarship",
           });
         }
       }
 
-      // Find scholarship and change status
-      for (const scholarship of user.appliedScholarship) {
-        if (scholarship.scholarshipId.toString() === scholarshipId) {
-          scholarship.status = updatedStatus;
-        }
-      }
-
+      // Update the scholarship status
+      scholarshipToUpdate.status = updatedStatus;
       await user.save();
 
       return res.status(201).json({
