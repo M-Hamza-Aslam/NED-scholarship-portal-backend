@@ -167,11 +167,12 @@ module.exports = {
       });
     }
   },
-
   appliedScholarship: async (req, res) => {
     try {
       const userId = req.userId; // extract userId from token
       const scholarshipId = req.params.id;
+      const { otherRequirements } = req.body;
+
       console.log(scholarshipId);
 
       const { body } = req;
@@ -222,16 +223,16 @@ module.exports = {
           });
         }
 
-        // For merit based scholarships
+        // For merit-based scholarships
         if (scholarshipDetails.type === "merit") {
-          //Criteria
+          // Criteria
           if (
             scholarshipDetails.matricPercentage >
             user.education.matric.percentage
           ) {
             return res.status(400).json({
               error:
-                "You are not eligible for this scholarlarship because your matric % is not enough.",
+                "You are not eligible for this scholarship because your matric % is not enough.",
             });
           }
           if (
@@ -240,7 +241,7 @@ module.exports = {
           ) {
             return res.status(400).json({
               error:
-                "You are not eligible for this scholarlarship because your inter % is not enough.",
+                "You are not eligible for this scholarship because your inter % is not enough.",
             });
           }
           if (
@@ -249,20 +250,20 @@ module.exports = {
           ) {
             return res.status(400).json({
               error:
-                "You are not eligible for this scholarlarship because you CGPA is not enough.",
+                "You are not eligible for this scholarship because your CGPA is not enough.",
             });
           }
         }
 
-        // For need based scholarships
+        // For need-based scholarships
         if (scholarshipDetails.type === "need") {
-          //Criteria
+          // Criteria
           if (
             scholarshipDetails.familyIncome < user.familyDetails.grossIncome
           ) {
             return res.status(400).json({
               error:
-                "You are not eligible for this scholarlarship because your family income not matching the criteria.",
+                "You are not eligible for this scholarship because your family income does not match the criteria.",
             });
           }
         }
@@ -270,6 +271,7 @@ module.exports = {
         user.appliedScholarship.push({
           scholarshipId: new mongoose.Types.ObjectId(scholarshipId),
           status: "awaiting",
+          otherRequirements: otherRequirements,
         });
         await user.save();
 
@@ -295,7 +297,6 @@ module.exports = {
       });
     }
   },
-
   getScholarshipImg: async (req, res) => {
     try {
       const errors = validationResult(req);

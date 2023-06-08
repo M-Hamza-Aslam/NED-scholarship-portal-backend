@@ -114,7 +114,7 @@ router.get("/alumni-data", authenticateToken, getAlumniData);
 router.get("/alumniProfileImg", authenticateToken, sendAlumniProfileImg);
 
 router.patch(
-  "/update-scholarship-status",
+  "/created-scholarship-status",
   authenticateToken,
   alumniScholarshipStatus
 );

@@ -77,6 +77,10 @@ const userSchema = new Schema({
         enum: ["awaiting", "approved", "declined"],
         required: true,
       },
+      otherRequirements: {
+        type: Array,
+        default: [],
+      },
     },
   ],
   isVerified: {
