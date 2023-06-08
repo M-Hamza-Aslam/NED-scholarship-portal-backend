@@ -287,7 +287,7 @@ module.exports = {
         });
       }
     } catch (error) {
-      console.error("Error in appliedScholarship", error);
+      console.log("Error in appliedScholarship", error);
       return res.status(500).json({
         message: "Something went wrong with the API",
         error: error.message,
