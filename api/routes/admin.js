@@ -19,7 +19,8 @@ const {
   generateReport,
   appliedScholarshipReport,
   getAlumniScholarship,
-  getAlumniById,
+  getAlumniData,
+  sendAlumniProfileImg,
   alumniScholarshipStatus,
 } = require("../controllers/admin");
 
@@ -109,7 +110,8 @@ router.get(
   getAlumniScholarship
 );
 
-router.get("/alumniById/:id", authenticateToken, getAlumniById);
+router.get("/alumni-data", authenticateToken, getAlumniData);
+router.get("/alumniProfileImg", authenticateToken, sendAlumniProfileImg);
 
 router.patch(
   "/update-scholarship-status",

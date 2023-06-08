@@ -901,39 +901,71 @@ module.exports = {
       });
     }
   },
-  getAlumniById: async (req, res) => {
+  getAlumniData: async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(422).json({ errors: errors.array() });
-      }
-
-      const alumniId = req.params.id;
-
+      //getting userId from client
+      const alumniId = req.query.userId;
+      //extracting user
       const alumni = await Alumni.findById(alumniId);
       if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      //structuring userDetails;
+      const userDetails = {
+        userId: alumni._id.toString(),
+        sideBar: {
+          firstName: alumni.firstName,
+          lastName: alumni.lastName,
+          email: alumni.email,
+          phoneNumber: alumni.phoneNumber,
+          profileStatus: alumni.profileStatus,
+          profileImg: alumni.profileImg,
+        },
+        personalInfo: {
+          firstName: alumni.firstName,
+          lastName: alumni.lastName,
+          phoneNumber: alumni.phoneNumber,
+          personalInfo: alumni.personalInfo,
+        },
+      };
+      //sending user data to front end
+      res.status(200).json({
+        message: "Alumni details has been fetched",
+        userDetails,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Internal server error",
+      });
+    }
+  },
+  sendAlumniProfileImg: async (req, res) => {
+    try {
+      const alumni = await Alumni.findById(req.query.userId);
+      if (!alumni) {
+        return res.status(404).json({ message: "Alumni not found" });
+      }
+      const filePath = path.resolve(alumni.profileImg);
+      if (!fs.existsSync(filePath)) {
         return res.status(401).json({
-          message: "Alumni not found",
+          message: "Invalid File",
         });
       }
-      const alumniDetails = {
-        firstName: alumni.firstName,
-        lastName: alumni.lastName,
-        userRole: alumni.userRole,
-        email: alumni.email,
-        phoneNumber: alumni.phoneNumber,
-        profileImg: alumni.profileImg,
-        profileStatus: alumni.profileStatus,
-        isVerified: alumni.isVerified,
-        personalInfo: alumni.personalInfo,
-      };
+      const contentType = getContentType(filePath);
+      res.set("Content-Type", contentType);
+      const fileStream = createReadStream(filePath);
 
-      res.json(alumniDetails);
+      fileStream.on("error", (error) => {
+        console.error(error);
+        res.status(500).end();
+      });
+
+      fileStream.pipe(res);
     } catch (error) {
-      console.error("Error in getAlumniById", error);
+      console.log(error);
       res.status(500).json({
-        message: "Something went wrong with the API",
-        error: error.message,
+        message: "Internal server error",
       });
     }
   },

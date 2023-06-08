@@ -190,7 +190,8 @@ module.exports = {
       console.log("user.profileStatus", user.profileStatus);
       if (user.profileStatus != 100) {
         return res.status(400).json({
-          error: "Please fill in all the required profile information before applying for a scholarship.",
+          error:
+            "Please fill in all the required profile information before applying for a scholarship.",
         });
       }
 
@@ -212,43 +213,56 @@ module.exports = {
         return res.json({
           error: "User already has an approved scholarship",
         });
-      }
-      
-      else {
-        //Now checking weather the user profile meeting scolarship criteria 
+      } else {
+        //Now checking weather the user profile meeting scolarship criteria
         const scholarshipDetails = await Scholarship.findById(scholarshipId);
         if (!scholarshipDetails) {
           return res.status(404).json({
             message: "Scholarship not found",
           });
         }
-        
-        // For merit based scholarships 
-        if(scholarshipDetails.type === "merit"){
+
+        // For merit based scholarships
+        if (scholarshipDetails.type === "merit") {
           //Criteria
-          if (scholarshipDetails.matricPercentage > user.education.matric.percentage){
+          if (
+            scholarshipDetails.matricPercentage >
+            user.education.matric.percentage
+          ) {
             return res.status(400).json({
-              error: "You are not eligible for this scholarlarship because your matric % is not enough.",
+              error:
+                "You are not eligible for this scholarlarship because your matric % is not enough.",
             });
           }
-          if (scholarshipDetails.intermediatePercentage > user.education.intermediate.percentage){
+          if (
+            scholarshipDetails.intermediatePercentage >
+            user.education.intermediate.percentage
+          ) {
             return res.status(400).json({
-              error: "You are not eligible for this scholarlarship because your inter % is not enough.",
+              error:
+                "You are not eligible for this scholarlarship because your inter % is not enough.",
             });
           }
-          if (scholarshipDetails.bachelorCGPA > user.education.bachelor.obtainedCGPA){
+          if (
+            scholarshipDetails.bachelorCGPA >
+            user.education.bachelor.obtainedCGPA
+          ) {
             return res.status(400).json({
-              error: "You are not eligible for this scholarlarship because you CGPA is not enough.",
+              error:
+                "You are not eligible for this scholarlarship because you CGPA is not enough.",
             });
           }
         }
 
-        // For need based scholarships 
-        if (scholarshipDetails.type === 'need') {
+        // For need based scholarships
+        if (scholarshipDetails.type === "need") {
           //Criteria
-          if (scholarshipDetails.familyIncome < user.familyDetails.grossIncome) {
+          if (
+            scholarshipDetails.familyIncome < user.familyDetails.grossIncome
+          ) {
             return res.status(400).json({
-              error: "You are not eligible for this scholarlarship because your family income not matching the criteria.",
+              error:
+                "You are not eligible for this scholarlarship because your family income not matching the criteria.",
             });
           }
         }
